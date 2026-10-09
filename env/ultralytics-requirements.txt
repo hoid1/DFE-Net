@@ -1,0 +1,26 @@
+faster-coco-eval>=1.6.5
+PyYAML
+tensorboard
+scipy
+calflops
+thop
+transformers
+pytorch_wavelets
+timm
+grad-cam==1.5.5
+tidecv
+einops
+prettytable
+pycocotools==2.0.11
+PyWavelets
+torch-dct==0.1.6
+polars
+dill
+easydict
+swanlab
+albumentationsx==2.0.16
+setuptools==80.10.2
+
+# ------------------ 装不成功可以先注释这两个(只有极少部分改进依赖这两个包)
+# mmengine==0.10.7
+# mmcv==2.2.0

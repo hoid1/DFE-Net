@@ -1,0 +1,13 @@
+cff-version: 1.2.0
+message: "If you use this code or the released weights, please cite the article."
+title: "DFE-Net: Dual-Stream Gated Cross-Modulation and Spatial-Frequency Detail Compensation for Steel Surface Defect Detection"
+authors:
+  - family-names: Shi
+    given-names: Mingshang
+  - family-names: Zhao
+    given-names: Jing
+  - family-names: Cai
+    given-names: Weibin
+  - family-names: Xue
+    given-names: Zhipeng
+license: AGPL-3.0

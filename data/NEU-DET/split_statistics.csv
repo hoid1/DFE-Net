@@ -1,0 +1,8 @@
+class_id,class,train_images,val_images,train_boxes,val_boxes
+0,crazing,240,60,555,133
+1,inclusion,299,83,775,235
+2,patches,275,67,694,186
+3,pitted_surface,240,61,339,93
+4,rolled-in_scale,240,60,501,127
+5,scratches,240,60,440,108
+,Total,1440,360,3304,882

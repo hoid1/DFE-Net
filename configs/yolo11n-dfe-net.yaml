@@ -1,0 +1,173 @@
+# dfe-net: architecture exported from the released checkpoint (best.pt).
+# Original training config: yolo11-triple-DGCM-SOEPRFPNMFM-thirdpoint/ultralytics/cfg/models/improve/triple-DGCM-SOEPRFPNMFM/yolo11/C-检测头/yolo11-csp-DGCM-SOEP-RFPN-MFM-EfficientHead.yaml
+nc: 6
+legacy: false
+scales:
+  n:
+  - 0.5
+  - 0.25
+  - 1024
+  s:
+  - 0.5
+  - 0.5
+  - 1024
+  m:
+  - 0.5
+  - 1.0
+  - 512
+  l:
+  - 1.0
+  - 1.0
+  - 512
+  x:
+  - 1.0
+  - 1.5
+  - 512
+backbone:
+- - -1
+  - 1
+  - Conv
+  - - 64
+    - 3
+    - 2
+- - -1
+  - 1
+  - Conv
+  - - 128
+    - 3
+    - 2
+- - -1
+  - 2
+  - C3k2_Block
+  - - 256
+    - module: DGCM
+    - false
+    - 0.25
+- - -1
+  - 1
+  - Conv
+  - - 256
+    - 3
+    - 2
+- - -1
+  - 2
+  - C3k2_Block
+  - - 512
+    - module: DGCM
+    - false
+    - 0.25
+- - -1
+  - 1
+  - Conv
+  - - 512
+    - 3
+    - 2
+- - -1
+  - 2
+  - C3k2_Block
+  - - 512
+    - module: DGCM
+    - true
+- - -1
+  - 1
+  - Conv
+  - - 1024
+    - 3
+    - 2
+- - -1
+  - 2
+  - C3k2_Block
+  - - 1024
+    - module: DGCM
+    - true
+- - -1
+  - 1
+  - SPPF
+  - - 1024
+    - 5
+- - -1
+  - 2
+  - C2PSA
+  - - 1024
+head:
+- - -1
+  - 1
+  - SNI
+  - - 2
+- - - -1
+    - 6
+  - 1
+  - MFM
+  - - 1024
+- - -1
+  - 2
+  - C3k2_Block
+  - - 512
+    - module: DGCM
+    - false
+- - -1
+  - 1
+  - SNI
+  - - 2
+- - 2
+  - 1
+  - SPDConv
+  - - 256
+- - - -1
+    - -2
+    - 4
+  - 1
+  - MFM
+  - - 512
+- - -1
+  - 1
+  - CSPOmniKernel
+  - []
+- - -1
+  - 2
+  - C3k2_Block
+  - - 256
+    - module: DGCM
+    - false
+- - -1
+  - 1
+  - GSConvE
+  - - 256
+    - 3
+    - 2
+- - - -1
+    - 13
+  - 1
+  - MFM
+  - - 256
+- - -1
+  - 2
+  - C3k2_Block
+  - - 512
+    - module: DGCM
+    - false
+- - -1
+  - 1
+  - GSConvE
+  - - 512
+    - 3
+    - 2
+- - - -1
+    - 10
+  - 1
+  - MFM
+  - - 512
+- - -1
+  - 2
+  - C3k2_Block
+  - - 1024
+    - module: DGCM
+    - true
+- - - 18
+    - 21
+    - 24
+  - 1
+  - Detect_Efficient
+  - - nc
+scale: ''
+channels: 3

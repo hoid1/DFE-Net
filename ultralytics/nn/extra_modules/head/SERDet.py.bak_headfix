@@ -1,0 +1,22 @@
+"""
+0527 版检测头 SERDet 的适配层。
+
+本体位于 ultralytics/nn/modules/Head/SERDet.py，逐字保留，未作任何修改。
+本文件只做一件事，不触碰本体代码：新版 parse_model 对所有检测头统一执行
+args.extend([reg_max, end2end, ch])，而 0527 版检测头签名为 (nc, ch)，
+参数个数不匹配 —— 这里套一层构造函数吸收 reg_max / end2end 后原样转调。
+
+yaml 中请引用 Detect_SERDet，不要直接引用本体类 SERDet。
+计算图、权重命名、参数量与 0527 版逐位一致。
+"""
+
+import torch.nn as nn
+
+from ultralytics.nn.modules.Head.SERDet import SERDet as _SERDet
+
+__all__ = ("Detect_SERDet",)
+
+
+class Detect_SERDet(_SERDet):
+    def __init__(self, nc=80, reg_max=16, end2end=False, ch=()):
+        super().__init__(nc, ch)

@@ -1,0 +1,88 @@
+{
+  "models": {
+    "dfe-net": {
+      "checkpoint_source": "/root/autodl-tmp/Ultralytics_migrated_fixed/runs/detect/runs/yolo11-csp-DGCM-SOEP-RFPN-MFM-EfficientHead-neudet2/weights/best.pt",
+      "weights": "weights/dfe-net_best.pt",
+      "sha256": "e2d8e5b083065be55b5e8972d786db2663d3bc2247d588aed3465fa37288f271",
+      "size_MB": 17.85,
+      "params": 2246720,
+      "config": "configs/yolo11n-dfe-net.yaml",
+      "data_yaml_used": "NEU-DET_split/data.yaml",
+      "seed": 0,
+      "epochs": 300,
+      "best_fitness": 1.17961,
+      "epoch_saved": 244,
+      "names": {
+        "0": "crazing",
+        "1": "inclusion",
+        "2": "patches",
+        "3": "pitted_surface",
+        "4": "rolled-in_scale",
+        "5": "scratches"
+      },
+      "module_source_files": {
+        "Conv": "ultralytics/nn/modules/conv.py",
+        "C3k2_Block": "ultralytics/nn/extra_modules/block/CSPBlock.py",
+        "DGCM": "ultralytics/nn/extra_modules/module/DGCM.py",
+        "StripSpatialAttention": "ultralytics/nn/extra_modules/module/DGCM.py",
+        "DualPoolChannelAttention": "ultralytics/nn/extra_modules/module/DGCM.py",
+        "C3k_Block": "ultralytics/nn/extra_modules/block/CSPBlock.py",
+        "SPPF": "ultralytics/nn/modules/block.py",
+        "C2PSA": "ultralytics/nn/modules/block.py",
+        "PSABlock": "ultralytics/nn/modules/block.py",
+        "Attention": "ultralytics/nn/modules/block.py",
+        "SNI": "ultralytics/nn/extra_modules/neck/RFPN.py",
+        "MFM": "ultralytics/nn/extra_modules/featurefusion/mfm.py",
+        "SPDConv": "ultralytics/nn/extra_modules/downsample/SPDConv.py",
+        "CSPOmniKernel": "ultralytics/nn/extra_modules/neck/SOEP.py",
+        "OmniKernel": "ultralytics/nn/extra_modules/neck/SOEP.py",
+        "FGM": "ultralytics/nn/extra_modules/neck/SOEP.py",
+        "GSConvE": "ultralytics/nn/extra_modules/neck/RFPN.py",
+        "Detect_Efficient": "ultralytics/nn/extra_modules/head/Efficient.py",
+        "DFL": "ultralytics/nn/modules/block.py"
+      }
+    },
+    "yolo11n": {
+      "checkpoint_source": "/root/autodl-tmp/Ultralytics_migrated_fixed/runs/detect/runs/yolo11-neudet/weights/best.pt",
+      "weights": "weights/yolo11n_best.pt",
+      "sha256": "728caace86e9e67abdfe8115f73ddf827c14ea9bddcde502bad0ef588f9c4cdf",
+      "size_MB": 20.25,
+      "params": 2591010,
+      "config": "configs/yolo11n-baseline.yaml",
+      "data_yaml_used": "NEU-DET_split/data.yaml",
+      "seed": 0,
+      "epochs": 300,
+      "best_fitness": 1.13637,
+      "epoch_saved": 219,
+      "names": {
+        "0": "crazing",
+        "1": "inclusion",
+        "2": "patches",
+        "3": "pitted_surface",
+        "4": "rolled-in_scale",
+        "5": "scratches"
+      },
+      "module_source_files": {
+        "Conv": "ultralytics/nn/modules/conv.py",
+        "C3k2": "ultralytics/nn/modules/block.py",
+        "Bottleneck": "ultralytics/nn/modules/block.py",
+        "C3k": "ultralytics/nn/modules/block.py",
+        "SPPF": "ultralytics/nn/modules/block.py",
+        "C2PSA": "ultralytics/nn/modules/block.py",
+        "PSABlock": "ultralytics/nn/modules/block.py",
+        "Attention": "ultralytics/nn/modules/block.py",
+        "Concat": "ultralytics/nn/modules/conv.py",
+        "Detect": "ultralytics/nn/modules/head.py",
+        "DWConv": "ultralytics/nn/modules/conv.py",
+        "DFL": "ultralytics/nn/modules/block.py"
+      }
+    }
+  },
+  "split": {
+    "train_images": 1440,
+    "train_boxes": 3304,
+    "val_images": 360,
+    "val_boxes": 882
+  },
+  "split_matches_paper": true
+}

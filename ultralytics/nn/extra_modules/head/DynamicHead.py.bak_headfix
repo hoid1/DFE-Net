@@ -1,0 +1,39 @@
+"""
+0527 版检测头 DynamicHead 的适配层。
+
+本体位于 ultralytics/nn/modules/Head/DynamicHead.py，逐字保留，未作任何修改。
+本文件只做一件事，不触碰本体代码：新版 parse_model 对所有检测头统一执行
+args.extend([reg_max, end2end, ch])，而 0527 版检测头签名为 (nc, ch)，
+参数个数不匹配 —— 这里套一层构造函数吸收 reg_max / end2end 后原样转调。
+
+yaml 中请引用 Detect_DynamicHead，不要直接引用本体类 DynamicHead。
+计算图、权重命名、参数量与 0527 版逐位一致。
+"""
+
+import torch.nn as nn
+
+# 本体 import 依赖 mmcv / mmengine（ModulatedDeformConv2d、build_activation_layer）。
+# 为了不改动本体代码，这里做一次惰性保护：缺依赖时不影响其余模块的导入，
+# 只在实例化本类时抛出 ImportError。
+try:
+    from ultralytics.nn.modules.Head.DynamicHead import DynamicHead as _DynamicHead
+
+    _IMPORT_ERROR = None
+except Exception as _e:  # pragma: no cover
+    _DynamicHead = None
+    _IMPORT_ERROR = _e
+
+__all__ = ("Detect_DynamicHead",)
+
+
+if _DynamicHead is None:
+
+    class Detect_DynamicHead(nn.Module):
+        def __init__(self, *args, **kwargs):
+            raise ImportError("Detect_DynamicHead 需要 mmcv / mmengine，请先安装后再使用") from _IMPORT_ERROR
+
+else:
+
+    class Detect_DynamicHead(_DynamicHead):
+        def __init__(self, nc=80, reg_max=16, end2end=False, ch=()):
+            super().__init__(nc, ch)

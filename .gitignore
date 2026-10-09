@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+*.so
+runs_local/
+*.cache
+.ipynb_checkpoints/
+.DS_Store

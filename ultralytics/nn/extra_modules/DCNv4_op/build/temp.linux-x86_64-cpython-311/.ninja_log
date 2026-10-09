@@ -1,0 +1,4 @@
+# ninja log v7
+1	18472	1785226981684427110	/root/autodl-tmp/Ultralytics_migrated_fixed/compile_module/DCNv4_op/build/temp.linux-x86_64-cpython-311/root/autodl-tmp/Ultralytics_migrated_fixed/compile_module/DCNv4_op/src/vision.o	f3d6950f749b7428
+0	100016	1785226981680429562	/root/autodl-tmp/Ultralytics_migrated_fixed/compile_module/DCNv4_op/build/temp.linux-x86_64-cpython-311/root/autodl-tmp/Ultralytics_migrated_fixed/compile_module/DCNv4_op/src/cuda/dcnv4_cuda.o	285bfa366c0e940
+1	232722	1785226981684427110	/root/autodl-tmp/Ultralytics_migrated_fixed/compile_module/DCNv4_op/build/temp.linux-x86_64-cpython-311/root/autodl-tmp/Ultralytics_migrated_fixed/compile_module/DCNv4_op/src/cuda/flash_deform_attn_cuda.o	192a7236ade870b6

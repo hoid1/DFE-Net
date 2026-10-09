@@ -1,0 +1,597 @@
+# ----------------------- attention -----------------------
+from .attention.ACA import ACA
+from .attention.ACAB import ACAB
+from .attention.ca import CoordAtt
+from .attention.CASAB import CASAB
+from .attention.CDFA import ContrastDrivenFeatureAggregation
+from .attention.DeformableLKA import DeformableLKA 
+from .attention.DHPF import DHPF  
+from .attention.ema import EMA     
+from .attention.FSDA import FSDA
+from .attention.FSA import FSA 
+from .attention.KSFA import KSFA     
+from .attention.lsk import LSKBlock 
+from .attention.MCA import MCA
+from .attention.mlca import MLCA   
+from .attention.MultiSEAM import MultiSEAM  
+from .attention.simam import SimAM
+
+# ----------------------- conv_module -----------------------   
+from .conv_module.CKConv import CKConv 
+from .conv_module.AGIDWC import AGIDWC    
+from .conv_module.ConvAttn import ConvAttn     
+from .conv_module.Converse2D import Converse2D
+from .conv_module.DEGConv import DEGConv 
+from .conv_module.dbb import DiverseBranchBlock     
+from .conv_module.dcnv2 import DCNv2
+from .conv_module.dcnv3 import DeformConvV3 
+from .conv_module.dcnv4 import DeformConvV4
+from .conv_module.deconv import DEConv
+from .conv_module.deepdbb import DeepDiverseBranchBlock
+from .conv_module.DilatedReparamConv import DilatedReparamConv    
+from .conv_module.DSA import DSA
+from .conv_module.dynamic_snake_conv import DySnakeConv     
+from .conv_module.FADC import AdaptiveDilatedConv
+from .conv_module.FDConv import FDConv  
+from .conv_module.FourierConv import FourierConv  
+from .conv_module.gcconv import GCConv
+from .conv_module.gConv import gConv 
+from .conv_module.IDWC import InceptionDWConv2d 
+from .conv_module.MSIDWC import MSIDWC
+from .conv_module.PolyConv import PolyConv
+from .conv_module.pconv import Partial_Conv
+from .conv_module.psconv import PSConv
+from .conv_module.RMBC import RepMBConv
+from .conv_module.ScConv import ScConv
+from .conv_module.SFSConv import SFS_Conv
+from .conv_module.ShiftwiseConv import ReparamLargeKernelConv
+from .conv_module.SMPConv import SMPConv
+from .conv_module.wdbb import WideDiverseBranchBlock
+from .conv_module.wtconv2d import WTConv2d     
+    
+# ----------------------- stem ----------------------- 
+from .stem.DPAS import DPAS  
+from .stem.LoG import LoGStem
+from .stem.ODALStem import ODALStem
+from .stem.RepStem import RepStem
+from .stem.SRFD import SRFD
+from .stem.WGFS import WGFS
+
+# ----------------------- upsample -----------------------    
+from .upsample.CARAFE import CARAFE
+from .upsample.Converse2D_Up import Converse2D_Up   
+from .upsample.DSUB import DSUB  
+from .upsample.DySample import DySample
+from .upsample.eucb import EUCB
+from .upsample.eucb_sc import EUCB_SC
+from .upsample.WaveletUnPool import WaveletUnPool     
+
+# ----------------------- downsample -----------------------
+from .downsample.ADown import ADown  
+from .downsample.DRFD import DRFD     
+from .downsample.DMSSP import DMSSP
+from .downsample.EdgeLAWDS import EdgeLAWDS    
+from .downsample.FSConv import FSConv
+from .downsample.FSCGD import FSCGD   
+from .downsample.FreqLAWDS import FreqLAWDS    
+from .downsample.gcnet import ContextGuidedBlock_Down
+from .downsample.HWD import HWD
+from .downsample.lawds import LAWDS  
+from .downsample.RouterLAWDS import RouterLAWDS     
+from .downsample.SPDConv import SPDConv
+from .downsample.WaveletPool import WaveletPool
+from .downsample.YOLOV7Down import V7DownSampling    
+
+# ----------------------- neck -----------------------
+from .neck import A3Conv, A3Fusion2, A3Fusion3, Add, AdvPoolFusion, BiFusion, CSP_MSCB, CSPStage, ChannelAttention_HSFPN, ChannelTransformer, Fusion, GSBottleneck, GSBottleneckC, GSConv, HFP, \
+    IFM, InjectionMultiSum_Auto_pool, Multiply, PyramidPoolAgg, RepBlock, SDP, ScalSeq, SimFusion_3in, SimFusion_4in, TopBasicLayer, VoVGSCSP, Zoom_cat, asf_attention_model, HyperComputeModule, \
+    FocusFeature, DynamicFrequencyFocusFeature, AlignmentGuidedFocusFeature
+
+# ----------------------- module ----------------------- 
+from .module.APBottleneck import APBottleneck
+from .module.ARF import ARF
+from .module.BCIM import BCIM  
+from .module.camixer import CAMixer
+from .module.CFBlock import CFBlock   
+from .module.CNCM import CNCM
+from .module.CSSC import CSSC 
+from .module.DBlock import DBlock   
+from .module.DGCM import DGCM    
+from .module.DSEBlock import DSEBlock 
+from .module.DRG import DRG
+from .module.DWR import DWR     
+from .module.DynamicFilter import DynamicFilter    
+from .module.EBlock import EBlock
+from .module.EFCM import EFCM  
+from .module.efficientVIM import EfficientViMBlock, EfficientViMBlock_CGLU
+from .module.elgca import ELGCA_EncoderBlock     
+from .module.ESC import ESCBlock    
+from .module.EVA import EVA
+from .module.fasterblock import Faster_Block, Faster_Block_CGLU
+from .module.FasterCGABlock import Faster_CGA_Block
+from .module.FATBlock import FAT_Block  
+from .module.FCM import FCM
+from .module.FMA import FMA  
+from .module.FourierSR import FourierSR     
+from .module.FrequencyCM import FrequencyCM   
+from .module.GLSA import GLSA
+from .module.GLGM import GLGM
+from .module.HFRB import HFRB    
+from .module.IDWB import InceptionDWBlock     
+from .module.IEL import IEL     
+from .module.IRA import IRA  
+from .module.iRMB import iRMB
+from .module.JDPM import JDPM
+from .module.LEGBlock import LEGBlock
+from .module.LEGM import LEGM   
+from .module.LaSEA import LaSEA
+from .module.LWGA import LWGA
+from .module.MAC import MAC 
+from .module.mambaout import MambaOut, MambaOut_DilatedReparamConv, MambaOut_UniRepLKBlock  
+from .module.MFEBlock import MFEblock
+from .module.MSBlock import MSBlock  
+from .module.MSCB import MSCB    
+from .module.PartialNetBlock import PartialNetBlock   
+from .module.PKIBlock import PKIBlock
+from .module.PKIBlockV2 import PKINetV2Block   
+from .module.RCB import RepConvBlock 
+from .module.RepViTBlock import RepViTBlock  
+from .module.RFGM import RFGM   
+from .module.SPJFB import SPJFrequencyBlock
+from .module.starblock import Star_Block
+from .module.StripBlock import StripBlock
+from .module.SFEB import SFEB    
+from .module.UniRepLKBlock import UniRepLKNetBlock     
+from .module.vHeat import Heat2D    
+from .module.Wave2D import Wave2D     
+from .module.MyModule import MyModule    
+from .module.sparse_mamba_block import SparseMambaBlock
+from .module.MSInit import MSInit  
+from .module.PFG import PFG   
+from .module.LFP import LFP  
+from .module.AMSI import AMSI     
+from .module.CMSI import CMSI
+from .module.FMSI import FMSI  
+from .module.HPFGA import HPFGA
+from .module.DPFGA import DPFGA
+from .module.HOIE import HOIE
+from .module.ADIE import ADIE     
+
+# ----------------------- transformer -----------------------     
+from .transformer.AdaptiveSparseSA import AdaptiveSparseSA
+from .transformer.biformer import BiLevelRoutingAttention_nchw
+from .transformer.BinaryAttention import BinaryAttention   
+from .transformer.CascadedGroupAttention import CascadedGroupAttention
+from .transformer.CBSA import CBSA   
+from .transformer.CirculantAttention import CirculantAttention   
+from .transformer.CGTA import CGTA  
+from .transformer.CPIA_SA import SPC_SA   
+from .transformer.CTA import Channel_Transposed_Attention  
+from .transformer.DAttention import DAttention
+from .transformer.DWM_MSA import DWM_MSA   
+from .transformer.DHOGSA import DHOGSA   
+from .transformer.DilatedGCSA import DilatedGCSA
+from .transformer.DilatedMWSA import DilatedMWSA 
+from .transformer.DPWA import DPWA  
+from .transformer.EGSA import EfficientGlobalSA
+from .transformer.FSSA import FSSA
+from .transformer.GLCDM import GLCDM
+from .transformer.GSA import GSA   
+from .transformer.LRSA import LRSA    
+from .transformer.LCGA import LCGA
+from .transformer.MALA import MALA
+from .transformer.MSLA import MSLA
+from .transformer.MUA import MaskUnitAttention
+from .transformer.PolaLinearAttention import PolaLinearAttention
+from .transformer.RSA import RSA    
+from .transformer.SAA import SAA
+from .transformer.SFA import Spatial_Frequency_Attention 
+from .transformer.SHSA import SHSA 
+from .transformer.SDTA import SDTA
+from .transformer.SWSA import PatchSA  
+from .transformer.TAB import TAB
+from .transformer.TokenSelectAttention import Token_Selective_Attention
+from .transformer.WDAM import WDAM   
+from .transformer.wca import WCA
+  
+# ----------------------- mamba ----------------------- 
+from .mamba.MobileMamba.mobilemamba import MobileMambaModule
+from .mamba.ASSM import ASSM   
+from .mamba.CSI import CSI  
+from .mamba.GradMamba import GradMamba
+from .mamba.GLSS import GLSS
+from .mamba.GLSS2D import GLSS2D
+from .mamba.GLVSS import GL_VSS
+from .mamba.MaIR import VMM
+from .mamba.PatchMamba import PatchMamba
+from .mamba.SAVSS import SAVSS     
+from .mamba.SFMB import SFMB   
+from .mamba.SS2D import SS2D  
+from .mamba.TinyViM import TViMBlock    
+from .mamba.TransMixer import TransMixerModule   
+from .mamba.VSSD import VMAMBA2Block  
+from .mamba.sparse_state_space import SparseStateSpace   
+ 
+# ----------------------- mlp -----------------------
+from .mlp.ConvolutionalGLU import ConvolutionalGLU   
+from .mlp.AFFN import AFFN   
+from .mlp.DFFN import DFFN
+from .mlp.DIFF import DIFF
+from .mlp.DML import DML
+from .mlp.DSRG import DSRG    
+from .mlp.EDFFN import EDFFN
+from .mlp.EFFN import EFFN
+from .mlp.FMFFN import FMFFN     
+from .mlp.FRFN import FRFN
+from .mlp.GLSFFN import GLSFFN
+from .mlp.KAN import KAN
+from .mlp.MCCG import MCCG     
+from .mlp.MSAFFN import MSAFFN  
+from .mlp.PolyMLP import PolyMLP   
+# from .mlp.SEFN import SEFN    
+
+# ----------------------- norm -----------------------   
+from .norm.derf import DynamicERF     
+from .norm.dyt import DynamicTanh
+from .norm.repbn import LinearNorm 
+  
+# ----------------------- block ----------------------- 
+from .block.CSPBlock import C3_Block, C2f_Block, C3k2_Block, MetaFormer_Block, MetaFormer_Mona, MetaFormer_SEFN, MetaFormer_Mona_SEFN     
+from .block.CBIMS import CBIMS   
+from .block.MANet import MANet 
+from .block.ResBlock import ResidualBlock 
+from .block.PartialBlock import PartialBlock, PartialBlock_SFMB
+from .block.RepHMS import RepHMS, DepthBottleneckUniv2
+  
+# ----------------------- featurepreprocess -----------------------     
+from .featurepreprocess.FAENet import FAENet
+
+# ----------------------- featurefusion -----------------------   
+from .featurefusion.CAFM import CAFM    
+from .featurefusion.CIDAF import CIDAF
+from .featurefusion.CGAFusion import CGAFusion
+from .featurefusion.cgfm import ContextGuideFusionModule
+from .featurefusion.CSFCN import CSFCN  
+from .featurefusion.DAF import DynamicAlignFusion  
+from .featurefusion.DCGRM import DCGRM    
+from .featurefusion.DPCF import DPCF
+from .featurefusion.ERM import ERM     
+from .featurefusion.HAFFormer import HAFFormer  
+from .featurefusion.GDSAFusion import GDSAFusion
+from .featurefusion.HFFE import HFFE  
+from .featurefusion.LCA import LCA   
+from .featurefusion.LowFrequencyFeatureFusion import LowFrequencyFeatureFusion
+from .featurefusion.LPRM import LPRMAlignUpModule 
+from .featurefusion.MAFusion import MAFusion 
+from .featurefusion.mfm import MFM    
+from .featurefusion.MFPM import MFPM
+from .featurefusion.MSCRM import MSCRM
+from .featurefusion.mpca import MultiScalePCA, MultiScalePCA_Down
+from .featurefusion.MSAM import MSAM_P4, MSAM_P5
+from .featurefusion.msga import MultiScaleGatedAttn     
+from .featurefusion.PSFM import PSFM
+from .featurefusion.PST import PST
+from .featurefusion.SFSFusion import SFSFusion     
+from .featurefusion.FAAFusion import FAAFusion
+from .featurefusion.SDFM import SDFM
+from .featurefusion.WDAF import WDAF    
+from .featurefusion.wfu import WFU
+    
+# ----------------------- head -----------------------   
+from .head.LSPCD import Detect_LSPCD, Segment_LSPCD, Segment26_LSPCD, OBB_LSPCD, OBB26_LSPCD, Pose_LSPCD, Pose26_LSPCD
+from .head.LQE import Detect_LQE, Segment_LQE, Segment26_LQE, OBB_LQE, OBB26_LQE, Pose_LQE, Pose26_LQE
+from .head.DyHead import Detect_DyHead, Segment_DyHead, Segment26_DyHead, OBB_DyHead, OBB26_DyHead, Pose_DyHead, Pose26_DyHead
+
+
+# ==========================================================================
+# 0526 版迁移模块（自研 + 二次创新 + 其余全部旧库独有模块；仅主干网络未迁）
+#   模块本体代码逐字保留，未作任何修改
+#   检测头本体在 head/_legacy_*.py，head/<名>.py 为吸收 reg_max/end2end 的适配层
+#   与新版重名者以 _0526 后缀导入（0526 版实现与新版不同，并存以复现旧实验）
+# ==========================================================================
+from .kan_convs import *
+
+# ---------- 卷积 conv_module ----------
+from .conv_module.CSP_conv_wrappers import Bottleneck_CKConv, Bottleneck_ConvAttn, Bottleneck_Converse, Bottleneck_DBB
+from .conv_module.CSP_conv_wrappers import Bottleneck_DCNV2, Bottleneck_DEConv, Bottleneck_DEGConv, Bottleneck_DSA
+from .conv_module.CSP_conv_wrappers import Bottleneck_DeepDBB, Bottleneck_DySnakeConv, Bottleneck_DynamicConv, Bottleneck_FADC
+from .conv_module.CSP_conv_wrappers import Bottleneck_FDConv, Bottleneck_FourierConv, Bottleneck_GCConv, Bottleneck_RepMBConv
+from .conv_module.CSP_conv_wrappers import Bottleneck_SFSConv, Bottleneck_SWC, Bottleneck_ScConv, Bottleneck_WDBB
+from .conv_module.CSP_conv_wrappers import Bottleneck_WTConv, C3k_CKConv, C3k2_CKConv, C3k_ConvAttn
+from .conv_module.CSP_conv_wrappers import C3k2_ConvAttn, C3k_Converse, C3k2_Converse, C3k_DBB
+from .conv_module.CSP_conv_wrappers import C3k2_DBB, C3k_DCNv2, C3k2_DCNv2, C3k_DEConv
+from .conv_module.CSP_conv_wrappers import C3k2_DEConv, C3k_DEGConv, C3k2_DEGConv, C3k_DSA
+from .conv_module.CSP_conv_wrappers import C3k2_DSA, C3k_DeepDBB, C3k2_DeepDBB, C3k_DySnakeConv
+from .conv_module.CSP_conv_wrappers import C3k2_DySnakeConv, C3k_DynamicConv, C3k2_DynamicConv, C3k_FADC
+from .conv_module.CSP_conv_wrappers import C3k2_FADC, C3k_FDConv, C3k2_FDConv, C3k_FourierConv
+from .conv_module.CSP_conv_wrappers import C3k2_FourierConv, C3k_GCConv, C3k2_GCConv, C3k_RMBC
+from .conv_module.CSP_conv_wrappers import C3k2_RMBC, C3k_SFSConv, C3k2_SFSConv, C3k_SWC
+from .conv_module.CSP_conv_wrappers import C3k2_SWC, C3k_ScConv, C3k2_ScConv, C3k_WDBB
+from .conv_module.CSP_conv_wrappers import C3k2_WDBB, C3k_WTConv, C3k2_WTConv
+from .conv_module.DCNv2_Dynamic import MPCA, DCNv2_Offset_Attention, DCNv2_Dynamic, Bottleneck_DCNV2_Dynamic
+from .conv_module.DCNv2_Dynamic import C3k_DCNv2_Dynamic, C3k2_DCNv2_Dynamic
+from .conv_module.EMSConv import EMSConv, Bottleneck_EMSC, C3k_EMSC, C3k2_EMSC
+from .conv_module.EMSConvP import EMSConvP, Bottleneck_EMSCP, C3k_EMSCP, C3k2_EMSCP
+from .conv_module.LSConv_kernel import SKA, Conv2d_BN as Conv2d_BN_LSNet, LKP
+from .conv_module.OREPA_LargeConv import OREPA, OREPA_LargeConv
+from .conv_module.Partial_FDConv import Partial_FDConv, Bottleneck_PFDConv, FasterFDConv, C3k_FasterFD
+from .conv_module.Partial_FDConv import C3k2_FasterFD, C3k_PFDConv, C3k2_PFDConv
+from .conv_module.Partial_SFSConv import Partial_SFSConv, Bottleneck_PSFSConv, FasterSFSConv, C3k_FasterSFSC
+from .conv_module.Partial_SFSConv import C3k2_FasterSFSC, C3k_PSFSConv, C3k2_PSFSConv
+from .conv_module.SMPCNN import SMPCNN, conv_bn_relu, SMPBlock, SMPCNN_ConvFFN
+from .conv_module.SobelConv import SobelConv
+from .conv_module.kernel_warehouse import parse, KWconvNd, KWConv1d, KWConv2d
+from .conv_module.kernel_warehouse import KWConv3d, KWLinear, Warehouse_Manager, get_temperature
+from .conv_module.legacy_conv_kernels import AKConv, Bottleneck_AKConv, CenterFeatureScaleModule, DCNv3Function
+from .conv_module.legacy_conv_kernels import DCNv3, DCNV3_YOLO, Bottleneck_DCNV3, DCNv4Function
+from .conv_module.legacy_conv_kernels import DCNv4, DCNV4_YOLO, Bottleneck_DCNV4, KWConv
+from .conv_module.legacy_conv_kernels import Bottleneck_KW, MBRConv3, Bottleneck_MBRConv3, MBRConv5
+from .conv_module.legacy_conv_kernels import Bottleneck_MBRConv5, fuse_conv_bn, OD_Attention, ODConv2d
+from .conv_module.legacy_conv_kernels import Bottleneck_ODConv, ParC_operator, ParConv, Bottleneck_ParC
+from .conv_module.legacy_conv_kernels import RFAConv, Bottleneck_RFAConv, RFCAConv, Bottleneck_RFCAConv
+from .conv_module.legacy_conv_kernels import SE, RFCBAMConv, Bottleneck_RFCBAMConv, SCConv
+from .conv_module.legacy_conv_kernels import Bottleneck_SCConv, wConv2d, Bottleneck_wConv, C3k_AKConv
+from .conv_module.legacy_conv_kernels import C3k2_AKConv, C3k_DCNv3, C3k2_DCNv3, C3k_DCNv4
+from .conv_module.legacy_conv_kernels import C3k2_DCNv4, Freq_Fusion, Fused_Fourier_Conv_Mixer, C3k_FFCM
+from .conv_module.legacy_conv_kernels import C3k2_FFCM, C3k_KW, C3k2_KW, C3k_MBRConv3
+from .conv_module.legacy_conv_kernels import C3k2_MBRConv3, C3k_MBRConv5, C3k2_MBRConv5, C3k_ODConv
+from .conv_module.legacy_conv_kernels import C3k2_ODConv, C3k_Parc, C3k2_Parc, C3k_RFAConv
+from .conv_module.legacy_conv_kernels import C3k2_RFAConv, C3k_RFCAConv, C3k2_RFCAConv, C3k_RFCBAMConv
+from .conv_module.legacy_conv_kernels import C3k2_RFCBAMConv, C3k_SCConv, C3k2_SCConv, C3k_wConv
+from .conv_module.legacy_conv_kernels import C3k2_wConv
+from .conv_module.legacy_misc_convs import LDConv
+
+# ---------- Stem ----------
+from .stem.EIEStem import EIEStem
+
+# ---------- 下采样 ----------
+from .downsample.CSP_downsample_wrappers import C3k_ContextGuided, C3k2_ContextGuided
+from .downsample.LAWDS_0526 import LAWDS as LAWDS_0526
+from .downsample.legacy_downsampleconv import DownsampleConv
+
+# ---------- 上采样 ----------
+from .upsample.EUCB_0526 import EUCB as EUCB_0526
+
+# ---------- Block module ----------
+from .module.CGLU_fusion import ChannelOperation, SpatialOperation, AdditiveTokenMixer, LocalIntegration
+from .module.CGLU_fusion import Mlp_CASVIT, AdditiveBlock, AdditiveBlock_CGLU, C3k_AdditiveBlock_CGLU
+from .module.CGLU_fusion import C3k2_AdditiveBlock_CGLU, MF_Attention, LayerNormWithoutBias, MetaFormerCGLUBlock
+from .module.CGLU_fusion import C3k_CaFormerCGLU, C3k2_CaFormerCGLU, SepConv, C3k_ConvFormerCGLU
+from .module.CGLU_fusion import C3k2_ConvFormerCGLU, ELGCA_CGLU, C3k_ELGCACGLU, C3k2_ELGCACGLU
+from .module.CGLU_fusion import C3k_IdentityFormerCGLU, C3k2_IdentityFormerCGLU, MutilScal, Mutilscal_MHSA
+from .module.CGLU_fusion import MSMHSA_CGLU, C3k_MSMHSA_CGLU, C3k2_MSMHSA_CGLU, Pooling
+from .module.CGLU_fusion import C3k_PoolingFormerCGLU, C3k2_PoolingFormerCGLU, RandomMixing, C3k_RandomMixingCGLU
+from .module.CGLU_fusion import C3k2_RandomMixingCGLU, SHSABlock_CGLU, C3k_SHSA_CGLU, C3k2_SHSA_CGLU
+from .module.CGLU_fusion import Modulator, SMA, SMAFormerBlock_CGLU, C3k_SMAFB_CGLU
+from .module.CGLU_fusion import C3k2_SMAFB_CGLU, StripCGLU, C3k_StripCGLU, C3k2_StripCGLU
+from .module.CSP_FreqSpatial import ScharrConv, FreqSpatial, CSP_FreqSpatial
+from .module.CSP_MSCB_SC import MSCB_SC, CSP_MSCB_SC
+from .module.CSP_PMSFA import PMSFA, CSP_PMSFA
+from .module.CSP_PTB import PSA_Attention, MHSA_CGLU, PartiallyTransformerBlock, CSP_PTB
+from .module.CSP_block_wrappers import Bottleneck_IDWC, Bottleneck_PConv, C3k_AP, C3k2_AP
+from .module.CSP_block_wrappers import C3k_CAMixer, C3k2_CAMixer, C3k_CFBlock, C3k2_CFBlock
+from .module.CSP_block_wrappers import C3k_CNCM, C3k2_CNCM, C3k_CSSC, C3k2_CSSC
+from .module.CSP_block_wrappers import C3k_DBlock, C3k2_DBlock, C3k_DRG, C3k2_DRG
+from .module.CSP_block_wrappers import C3k_DSEBlock, C3k2_DSEBlock, C3k_DWR, C3k2_DWR
+from .module.CSP_block_wrappers import C3k_EBlock, C3k2_EBlock, C3k_ELGCA, C3k2_ELGCA
+from .module.CSP_block_wrappers import C3k_EMBC, C3k2_EMBC, C3k_ESC, C3k2_ESC
+from .module.CSP_block_wrappers import C3k_EVA, C3k2_EVA, C3k_EfficientVIM, C3k2_EfficientVIM
+from .module.CSP_block_wrappers import C3k_FAT, C3k2_FAT, C3k_FMB, C3k2_FMB
+from .module.CSP_block_wrappers import C3k_Faster, C3k2_Faster, C3k_FourierSR, C3k2_FourierSR
+from .module.CSP_block_wrappers import C3k_FrequencyCM, C3k2_FrequencyCM, C3k_GLGM, C3k2_GLGM
+from .module.CSP_block_wrappers import C3k_HFRB, C3k2_HFRB, C3k_IDWC, C3k2_IDWC
+from .module.CSP_block_wrappers import C3k_IEL, C3k2_IEL, C3k_IRA, C3k2_IRA
+from .module.CSP_block_wrappers import C3k_JDPM, C3k2_JDPM, C3k_LEGM, C3k2_LEGM
+from .module.CSP_block_wrappers import C3k_LFE, C3k2_LFE, C3k_LaSEA, C3k2_LaSEA
+from .module.CSP_block_wrappers import C3k_MAC, C3k2_MAC, C3k_MSBlock, C3k2_MSBlock
+from .module.CSP_block_wrappers import C3k_MSInit, C3k2_MSInit, C3k_PConv, C3k2_PConv
+from .module.CSP_block_wrappers import C3k_PFG, C3k2_PFG, C3k_PartialNetBlock, C3k2_PartialNetBlock
+from .module.CSP_block_wrappers import C3k_RCB, C3k2_RCB, C3k_RFGM, C3k2_RFGM
+from .module.CSP_block_wrappers import C3k_RVB, C3k2_RVB, C3k_SFEB, C3k2_SFEB
+from .module.CSP_block_wrappers import C3k_SMB, C3k2_SMB, C3k_SPJFB, C3k2_SPJFB
+from .module.CSP_block_wrappers import C3k_Strip, C3k2_Strip, C3k_iRMB, C3k2_iRMB
+from .module.CSP_kernel_wrappers import C3k_EfficientVIM_CGLU, C3k2_EfficientVIM_CGLU, C3k_Faster_CGLU, C3k2_Faster_CGLU
+from .module.CSP_kernel_wrappers import C3k_Star, C3k2_Star
+from .module.DIMB import DynamicInceptionDWConv2d, DynamicInceptionMixer, DynamicIncMixerBlock, C3k_DCMB
+from .module.DIMB import C3k2_DCMB
+from .module.DIMB_KAN import DynamicCIncMixerBlock_KAN, C3k_DCMB_KAN, C3k2_DCMB_KAN
+from .module.DSAN_EDFFN import DSAN_EDFFN, C3k_DSAN_EDFFN, C3k2_DSAN_EDFFN
+from .module.DWR_DRB import DWR_DRB, C3k_DWR_DRB, C3k2_DWR_DRB
+from .module.DynamicHGBlock import Dynamic_HGBlock
+from .module.EIEM import EIEM, C3k_EIEM, C3k2_EIEM
+from .module.Faster_KAN import Faster_Block_KAN, C3k_Faster_KAN, C3k2_Faster_KAN
+from .module.FeaturePyramidSharedConv import FeaturePyramidSharedConv
+from .module.GlobalFilter import GlobalFilter, GlobalFilterBlock, C3k_GlobalFilter, C3k2_GlobalFilter
+from .module.MSEIE import EdgeEnhancer, MutilScaleEdgeInformationEnhance, C3k_MutilScaleEdgeInformationEnhance, C3k2_MutilScaleEdgeInformationEnhance
+from .module.MSEIS import DSM_LocalAttention, DSM_SpatialGate, DualDomainSelectionMechanism, MutilScaleEdgeInformationSelect
+from .module.MSEIS import C3k_MutilScaleEdgeInformationSelect, C3k2_MutilScaleEdgeInformationSelect
+from .module.MambaOut_fusion import GatedDSABlock_BCHW, C3k_MambaOut_DSA, C3k2_MambaOut_DSA, GatedFDConvBlock_BCHW
+from .module.MambaOut_fusion import C3k_MambaOut_FDConv, C3k2_MambaOut_FDConv, LSConv, GatedLSBlock_BCHW
+from .module.MambaOut_fusion import C3k_MambaOut_LSConv, C3k2_MambaOut_LSConv, GatedSFSCBlock_BCHW, C3k_MambaOut_SFSC
+from .module.MambaOut_fusion import C3k2_MambaOut_SFSC, GatedUniRepLKBlock_BCHW, C3k_MambaOut_UniRepLK, C3k2_MambaOut_UniRepLK
+from .module.NCSPELAN_fusion import RepConvN, RepNBottleneck, DBBNBottleneck, RepNCSP
+from .module.NCSPELAN_fusion import DBBNCSP, DBBNCSPELAN4, DRBNBottleneck, DRBNCSP
+from .module.NCSPELAN_fusion import DRBNCSPELAN4, OREPANBottleneck, OREPANCSP, OREPANCSPELAN4
+from .module.RGCSPELAN import RGCSPELAN
+from .module.SMPCGLU import SMPCGLU, C3k_SMPCGLU, C3k2_SMPCGLU
+from .module.Star_CAA import Star_Block_CAA, C3k_Star_CAA, C3k2_Star_CAA
+from .module.iRMB_fusion import LocalWindowAttention, iRMB_Cascaded, C3k_iRMB_Cascaded, C3k2_iRMB_Cascaded
+from .module.iRMB_fusion import iRMB_DRB, C3k_iRMB_DRB, C3k2_iRMB_DRB, iRMB_SWC
+from .module.iRMB_fusion import C3k_iRMB_SWC, C3k2_iRMB_SWC
+from .module.legacy_block_kernels import choose_kan, Bottleneck_KAN, Bottleneck_OREPA, OREPA_3x3_RepVGG
+from .module.legacy_block_kernels import RepVGGBlock_OREPA, Bottleneck_REPVGGOREPA, C3k_AdditiveBlock, C3k2_AdditiveBlock
+from .module.legacy_block_kernels import MetaFormerBlock, C3k_CaFormer, C3k2_CaFormer, C3k_ConvFormer
+from .module.legacy_block_kernels import C3k2_ConvFormer, ConverseBlock, C3k_ConverseB, C3k2_ConverseB
+from .module.legacy_block_kernels import DSAN, C3k_DSAN, C3k2_DSAN, DilatedMDTA
+from .module.legacy_block_kernels import DilatedOCA, DTAB, C3k_DTAB, C3k2_DTAB
+from .module.legacy_block_kernels import C3k_DynamicFilter, C3k2_DynamicFilter, ETB, C3k_ETB
+from .module.legacy_block_kernels import C3k2_ETB, EVS, C3k_EVS, C3k2_EVS
+from .module.legacy_block_kernels import FCA_CTA, C3k_FCA_CTA, C3k2_FCA_CTA, FCA_SFA
+from .module.legacy_block_kernels import C3k_FCA_SFA, C3k2_FCA_SFA, FDT, C3k_FDT
+from .module.legacy_block_kernels import C3k2_FDT, FConvMod, MixFFN, FMABlock
+from .module.legacy_block_kernels import C3k_FMABlock, C3k2_FMABlock, Faster_Block_EMA, C3k_Faster_EMA
+from .module.legacy_block_kernels import C3k2_Faster_EMA, GhostModule, C3k_GhostDynamicConv, C3k2_GhostDynamicConv
+from .module.legacy_block_kernels import HDRAB, C3k_HDRAB, C3k2_HDRAB, HFERB
+from .module.legacy_block_kernels import C3k_HFERB, C3k2_HFERB, Mlp_Heat, HeatBlock
+from .module.legacy_block_kernels import C3k_Heat, C3k2_Heat, MetaNeXtBlock, C3k_IDWB
+from .module.legacy_block_kernels import C3k2_IDWB, C3k_IdentityFormer, C3k2_IdentityFormer, C3k_KAN
+from .module.legacy_block_kernels import C3k2_KAN, KatAttention, Kat, C3k_Kat
+from .module.legacy_block_kernels import C3k2_Kat, LFE_Module, C3k_LFEM, C3k2_LFEM
+from .module.legacy_block_kernels import CMlp, LocalAgg, GlobalSparseAttn, SelfAttn
+from .module.legacy_block_kernels import LGLBlock, C3k_LGLB, C3k2_LGLB, LWGA_Block
+from .module.legacy_block_kernels import C3k_LWGA, C3k2_LWGA, MFEB, C3k_MFEB
+from .module.legacy_block_kernels import C3k2_MFEB, spatial_strip_att, cubic_attention, dynamic_filter
+from .module.legacy_block_kernels import MultiShapeKernel, DeepPoolLayer, C3k_MSM, C3k2_MSM
+from .module.legacy_block_kernels import ChannelAggregationFFN, MultiOrderDWConv, MultiOrderGatedAggregation, MogaBlock
+from .module.legacy_block_kernels import C3k_MogaBlock, C3k2_MogaBlock, C3k_OREPA, C3k2_OREPA
+from .module.legacy_block_kernels import PKIModule_CAA, PKIModule, C3k_PKIModule, C3k2_PKIModule
+from .module.legacy_block_kernels import ECA, LocalGlobalAttention, SpatialAttentionModule, PPA
+from .module.legacy_block_kernels import C3k_PPA, C3k2_PPA, C3k_PoolingFormer, C3k2_PoolingFormer
+from .module.legacy_block_kernels import SAB, RAB, C3k_RAB, C3k2_RAB
+from .module.legacy_block_kernels import C3k_REPVGGOREPA, C3k2_REPVGGOREPA, RMB, C3k_RMB
+from .module.legacy_block_kernels import C3k2_RMB, RepViTBlock_EMA, C3k_RVB_EMA, C3k2_RVB_EMA
+from .module.legacy_block_kernels import C3k_RandomMixing, C3k2_RandomMixing, RelPos2d, DWConv2d
+from .module.legacy_block_kernels import FeedForwardNetwork, MaSA, MaSAd, RetBlock
+from .module.legacy_block_kernels import C3k_RetBlock, C3k2_RetBlock, MambaLayer, PositionalEncoding
+from .module.legacy_block_kernels import SBSM, C3k_SBSM, C3k2_SBSM, SFHF_FFN
+from .module.legacy_block_kernels import SFHF_FourierUnit, TokenMixer_For_Gloal, TokenMixer_For_Local, SFHF_Mixer
+from .module.legacy_block_kernels import SFHF_Block, C3k_SFHF, C3k2_SFHF, SHSABlock_FFN
+from .module.legacy_block_kernels import SHSABlock, C3k_SHSA, C3k2_SHSA, E_MLP
+from .module.legacy_block_kernels import SMAFormerBlock, C3k_SMAFB, C3k2_SMAFB, ConvMod
+from .module.legacy_block_kernels import MLPLayer, UniConvBlock, C3k_UniConvBlock, C3k2_UniConvBlock
+from .module.legacy_block_kernels import gConvBlock, C3k_gConv, C3k2_gConv, DualConv
+from .module.legacy_block_kernels import EDLAN, CSP_EDLAN, RepNCSPELAN4_CAA
+from .module.legacy_fcm import FCM_1, FCM_2, FCM_3, Pzconv
+from .module.legacy_hgblock_ext import Ghost_HGBlock, RepLightConv, Rep_HGBlock
+from .module.legacy_mhafyolo import DepthBottleneckv2, ConvMS, DepthBottleneckUni, RepHDW
+from .module.legacy_misc_blocks import BaseRouter, AdaptiveRoutingLayer, DGCST, DetectAux
+from .module.legacy_misc_blocks import EfficientSpatialRouter, GhostExpert, InvertedResidualExpert, LocalRoutingLayer
+from .module.legacy_misc_blocks import MoELoss, SimpleExpert, ESMoE, FullPAD_Tunnel
+from .module.legacy_misc_blocks import KAGNConvNDLayer, KAGNConv2DLayer, LSKA, RCA
+from .module.legacy_misc_blocks import RCM, SR, RCSOSA, SPPF_LSKA
+from .module.legacy_misc_blocks import Silence
+from .module.legacy_misc_blocks2 import ConvUtr, Embeddings, LeFF, WindowFrequencyModulation_FMFFN
+from .module.legacy_slimneck_ext import C3k_RVB_SE, C3k2_RVB_SE, GSConvns, GSBottleneckns
+from .module.legacy_slimneck_ext import VoVGSCSPC, VoVGSCSPns, multiRCM
+
+# ---------- CSP / MetaFormer / 架构组件 ----------
+from .block.A2C2f_DYT import ABlock_CGLU_DYT, A2C2f_CGLU_DYT, ABlock_DFFN_DYT, A2C2f_DFFN_DYT
+from .block.A2C2f_DYT import ABlock_DFFN_DYT_Mona, A2C2f_DFFN_DYT_Mona, ABlock_FMFFN_DYT, A2C2f_FMFFN_DYT
+from .block.A2C2f_variants import ABlock_CGLU, A2C2f_CGLU, ABlock_DFFN, A2C2f_DFFN
+from .block.A2C2f_variants import ABlock_DYT, A2C2f_DYT, ABlock_EDFFN, A2C2f_EDFFN
+from .block.A2C2f_variants import ABlock_FMFFN, A2C2f_FMFFN, FRFN2D, ABlock_FRFN
+from .block.A2C2f_variants import A2C2f_FRFN, ABlock_KAN, A2C2f_KAN, ABlock_Mona
+from .block.A2C2f_variants import A2C2f_Mona, SpectralEnhancedFFN, ABlock_SEFFN, A2C2f_SEFFN
+from .block.A2C2f_variants import ABlock_SEFN, A2C2f_SEFN
+from .block.C2PSA_variants import Attention_EPGO, PSABlock_AFFN, C2PSA_AFFN, PSABlock_BinaryAttn
+from .block.C2PSA_variants import C2PSA_BinaryAttn, PSABlock_CGLU, C2PSA_CGLU, PSABlock_CGTA
+from .block.C2PSA_variants import C2PSA_CGTA, PSABlock_CirculantAtt, C2PSA_CirculantAtt, PSABlock_DML
+from .block.C2PSA_variants import C2PSA_DML, PSABlock_DWMMSA, C2PSA_DWMMSA, PSABlock_DYT
+from .block.C2PSA_variants import C2PSA_DYT, PSABlock_EDFFN, C2PSA_EDFFN, PSABlock_EGSA
+from .block.C2PSA_variants import C2PSA_EGSA, PSABlock_EPGO, C2PSA_EPGO, PSABlock_FMFFN
+from .block.C2PSA_variants import C2PSA_FMFFN, PSABlock_LCGA, C2PSA_LCGA, PSABlock_LRSA
+from .block.C2PSA_variants import C2PSA_LRSA, PSABlock_MALA, C2PSA_MALA, PSABlock_Mona
+from .block.C2PSA_variants import C2PSA_Mona, PSABlock_SEFFN, C2PSA_SEFFN, PSABlock_SEFN
+from .block.C2PSA_variants import C2PSA_SEFN, PSABlock_SWSA, C2PSA_SWSA, PSABlock_WCA
+from .block.C2PSA_variants import C2PSA_WCA, PSABlock_WDAM, C2PSA_WDAM
+from .block.C2Pola_DYT import Polalock_DYT, C2Pola_DYT
+from .block.C2TSSA_DYT import AttentionTSSA, TSSAlock_DYT, C2TSSA_DYT, TSSAlock_DYT_Mona
+from .block.C2TSSA_DYT import C2TSSA_DYT_Mona, TSSAlock_DYT_Mona_EDFFN, C2TSSA_DYT_Mona_EDFFN, TSSAlock_DYT_Mona_SEFFN
+from .block.C2TSSA_DYT import C2TSSA_DYT_Mona_SEFFN, TSSAlock_DYT_Mona_SEFN, C2TSSA_DYT_Mona_SEFN
+from .block.C2_attention_variants import ASSAlock, BRABlock, C2ASSA, C2BRA
+from .block.C2_attention_variants import CGABlock, C2CGA, DABlock, C2DA
+from .block.C2_attention_variants import DPBlock, C2DPB, MSLAlock, C2MSLA
+from .block.C2_attention_variants import Polalock, C2Pola, TSSAlock, C2TSSA
+from .block.CSP_block2_wrappers import Bottleneck_DRB, C3k_DRB, C3k2_DRB, C3k_UniRepLKNetBlock
+from .block.CSP_block2_wrappers import C3k2_UniRepLKNetBlock
+from .block.MANet_fusion import MANet_FasterBlock, MANet_FasterCGLU, MANet_GCConv, MANet_Star
+from .block.YOLOv13_blocks import AdaHyperedgeGen, AdaHGConv, AdaHGComputation, C3AH
+from .block.YOLOv13_blocks import DSConv_YOLO13, DSBottleneck, DSC3k, DSC3k2
+from .block.YOLOv13_blocks import FuseModule, HyperACE
+
+# ---------- Transformer / 注意力 ----------
+from .transformer.CSMHSA import CSMHSA
+from .transformer.CSP_transformer_wrappers import Bottleneck_DAttention, C3k_DAttention, C3k2_DAttention, C3k_GLCDM
+from .transformer.CSP_transformer_wrappers import C3k2_GLCDM
+from .transformer.SHSA_EPGO import SHSA_EPGO, SHSABlock_EPGO, C3k_SHSA_EPGO, C3k2_SHSA_EPGO
+from .transformer.SHSA_EPGO import SHSABlock_EPGO_CGLU, C3k_SHSA_EPGO_CGLU, C3k2_SHSA_EPGO_CGLU
+from .transformer.TSSA import AttentionTSSA_Meta, C3k_TSSA, C3k2_TSSA
+from .transformer.legacy_misc_transformers import TransformerEncoderLayer_RepBN, AIFI_RepBN, Gate, GatedMLP
+from .transformer.legacy_misc_transformers import AttentiveLayer, FocalModulation
+from .transformer.legacy_transformer_kernels import get_seqlen_and_mask, AggregatedAttention, AttnMap, get_relative_position_cpb
+from .transformer.legacy_transformer_kernels import TransNeXt_AggregatedAttention, Bottleneck_AggregatedAttention, EfficientAttention, Bottleneck_CloAtt
+from .transformer.legacy_transformer_kernels import deformable_LKA, Bottleneck_DLKA, FocusedLinearAttention, Bottleneck_FocusedLinearAttention
+from .transformer.legacy_transformer_kernels import SoftPooling2D, LocalAttention, Bottleneck_RepMBConv_LA, C3k_AggregatedAtt
+from .transformer.legacy_transformer_kernels import C3k2_AggregatedAtt, C3k_CloAtt, C3k2_CloAtt, C3k_DLKA
+from .transformer.legacy_transformer_kernels import C3k2_DLKA, C3k2_FocusedLinearAttention, C3k_RMBC_LA, C3k2_RMBC_LA
+
+# ---------- Attention ----------
+from .attention.CSP_attention_wrappers import Bottleneck_EMA, Bottleneck_MLCA, C3k_EMA, C3k2_EMA
+from .attention.CSP_attention_wrappers import C3k_MLCA, C3k2_MLCA
+from .attention.legacy_attentions import Mix, AFGCAttention, BasicConv, ZPool
+from .attention.legacy_attentions import AttentionGate, BAMBlock, CPCA_ChannelAttention, CPCA
+from .attention.legacy_attentions import ELA, EffectiveSEModule, EfficientChannelAttention, SegNext_Attention
+from .attention.legacy_attentions import SpatialGroupEnhance, TripletAttention
+
+# ---------- Mamba ----------
+from .mamba.CSP_mamba_wrappers import C3k_CSI, C3k2_CSI, C3k_GLSS2D, C3k2_GLSS2D
+from .mamba.CSP_mamba_wrappers import C3k_GLVSS, C3k2_GLVSS, C3k_GradMamba, C3k2_GradMamba
+from .mamba.CSP_mamba_wrappers import C3k_PatchMamba, C3k2_PatchMamba, C3k_SFMB, C3k2_SFMB
+from .mamba.CSP_mamba_wrappers import C3k_SMS, C3k2_SMS, C3k_TVIM, C3k2_TVIM
+from .mamba.CSP_mamba_wrappers import C3k_TransMixer, C3k2_TransMixer, C3k_VSSD, C3k2_VSSD
+from .mamba.MambaYOLO_blocks import LSBlock, RGBlock, SimpleStem, VSSBlock_YOLO
+from .mamba.MambaYOLO_blocks import VisionClueMerge, XSSBlock
+from .mamba.legacy_mamba_ext import DRMamba, Mamba2Simple, VSSBlock, Mamba2Block
+from .mamba.legacy_mamba_ext import MambaVisionMixer, activation
+from .mamba.legacy_mamba_kernels import CrossMerge_1, CrossMerge_2, CrossMerge_3, CrossMerge_4
+from .mamba.legacy_mamba_kernels import CrossScan_1, CrossScan_2, CrossScan_3, CrossScan_4
+from .mamba.legacy_mamba_kernels import GroupMambaLayer, PVT2FFN, Block_mamba, Bottleneck_VSS
+from .mamba.legacy_mamba_kernels import C3k_GroupMamba, C3k2_GroupMamba, C3k_GroupMambaBlock, C3k2_GroupMambaBlock
+from .mamba.legacy_mamba_kernels import C3k_LSBlock, C3k2_LSBlock, C3k_LVMB, C3k2_LVMB
+from .mamba.legacy_mamba_kernels import GatedCNNBlock_BCHW, C3k_MambaOut, C3k2_MambaOut, MambaVisionBlock
+from .mamba.legacy_mamba_kernels import C3k_MambaVision, C3k2_MambaVision, MobileMambaBlockWindow, MobileMambaBlock
+from .mamba.legacy_mamba_kernels import C3k_MobileMamba, C3k2_MobileMamba, GBC, PAF
+from .mamba.legacy_mamba_kernels import RMSNorm, SAVSS_2D, SAVSS_Layer, C3k_SAVSS
+from .mamba.legacy_mamba_kernels import C3k2_SAVSS, TransMambaBlock, C3k_TransMamba, C3k2_TransMamba
+from .mamba.legacy_mamba_kernels import C3k_VSS, C3k2_VSS
+
+# ---------- Neck ----------
+from .neck.CFPT import ConvPosEnc, CrossLayerPosEmbedding3D, overlaped_channel_partition, overlaped_channel_reverse
+from .neck.CFPT import CrossLayerChannelAttention, overlaped_window_partition, overlaped_window_reverse, CrossLayerSpatialAttention
+from .neck.DynamicScalSeq import DynamicScalSeq
+from .neck.EMBSFPN_0526 import MSDC as MSDC_0526, MSCB as MSCB_0526, CSP_MSCB as CSP_MSCB_0526
+from .neck.FDPN_0526 import FocusFeature as FocusFeature_0526
+from .neck.HSFPN_ELA import ELA_HSFPN
+from .neck.HSFPN_SDP import SDP_Improved
+from .neck.RFPN import GSConvE, SNI
+from .neck.SOEP import FGM, OmniKernel, CSPOmniKernel
+from .neck.legacy_hsfpn_ext import CAA_HSFPN, CA_HSFPN
+
+# ---------- 特征融合 ----------
+from .featurefusion.CGFM_0526 import ContextGuideFusionModule as ContextGuideFusionModule_0526
+from .featurefusion.CSFCN_0526 import CFC_CRB as CFC_CRB_0526, SFC_G2 as SFC_G2_0526
+from .block.C2PSA_SDTA import PSABlock_SDTA, C2PSA_SDTA
+from .featurefusion.DASI import Bag, DASI
+from .featurefusion.GEIT import ConvEdgeFusion, MutilScaleEdgeInfoGenetator
+from .featurefusion.HAFB import HAFB
+from .featurefusion.SBA import Upsample, SBA
+from .featurefusion.legacy_misc_fusion import CAFMFusion, CAFM_Fusion, DynamicInterpolationFusion, compute_similarity
+from .featurefusion.legacy_misc_fusion import constant_init, normal_init, LocalSimGuidedSampler, hamming2D
+from .featurefusion.legacy_misc_fusion import resize, FreqFusion, FuseBlockMulti, MSAM
+from .featurefusion.legacy_misc_fusion import PyramidPoolAgg_PCE, PyramidContextExtraction, SDI
+
+# ---------- 检测头 ----------
+from .head.AFPN import Detect_AFPN_P345, Detect_AFPN_P2345, Detect_AFPN_P345_Custom, Detect_AFPN_P2345_Custom
+from .head.DyHeadDCN import Detect_DyHeadWithDCNV3, Detect_DyHeadWithDCNV4
+from .head.DyHeadPrune import Detect_DyHead_Prune
+from .head.Efficient import Detect_Efficient, Segment_Efficient
+from .head.FGIF import Detect_FGIF
+from .head.LADH import Detect_LADH, Segment_LADH, Pose_LADH, OBB_LADH
+from .head.LSCD import Detect_LSCD, Segment_LSCD, Pose_LSCD, OBB_LSCD
+from .head.LSCD_LQE import Detect_LSCD_LQE, Segment_LSCD_LQE, Pose_LSCD_LQE, OBB_LSCD_LQE
+from .head.LSCSBD import Detect_LSCSBD, Segment_LSCSBD, Pose_LSCSBD, OBB_LSCSBD
+from .head.LSDECD import Detect_LSDECD, Segment_LSDECD, Pose_LSDECD, OBB_LSDECD
+from .head.NMSFree import Detect_NMSFree
+from .head.RSCD import Detect_RSCD, Segment_RSCD, Pose_RSCD, OBB_RSCD
+from .head.SEAM import Detect_SEAM, Detect_MultiSEAM
+from .head.TADDH import Detect_TADDH, Segment_TADDH, Pose_TADDH, OBB_TADDH

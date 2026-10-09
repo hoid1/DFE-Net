@@ -1,0 +1,31 @@
+# Environment used in the paper: Python 3.11, PyTorch 2.8.0, CUDA 12.9 (exact package list: env/pip_freeze.txt).
+# Install PyTorch first, matching your CUDA, e.g.:
+#   pip install torch==2.8.0 torchvision==0.23.0 --index-url https://download.pytorch.org/whl/cu129
+numpy>=1.23.0
+matplotlib>=3.3.0
+opencv-python>=4.6.0
+pillow>=7.1.2
+pyyaml>=5.3.1
+requests>=2.23.0
+scipy>=1.4.1
+tqdm>=4.64.0
+psutil
+py-cpuinfo
+polars
+pandas
+# libraries imported by the bundled model zoo (ultralytics/nn/extra_modules)
+thop
+calflops
+transformers
+timm
+einops
+prettytable
+PyWavelets
+pytorch_wavelets
+torch-dct==0.1.6
+dill
+easydict
+faster-coco-eval>=1.6.5
+pycocotools==2.0.11
+grad-cam==1.5.5
+tensorboard

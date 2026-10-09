@@ -1,0 +1,788 @@
+'''
+本文件由 0526 版迁移而来（模块代码逐字保留，未作任何修改）
+来源：nn/extra_modules/CAFM.py:7-95 , nn/extra_modules/FreqFusion.py:16-20 , nn/extra_modules/FreqFusion.py:23-27 , nn/extra_modules/FreqFusion.py:241-352 , nn/extra_modules/FreqFusion.py:29-48 , nn/extra_modules/FreqFusion.py:355-389 , nn/extra_modules/FreqFusion.py:50-68 , nn/extra_modules/FreqFusion.py:70-237 , nn/extra_modules/UMFormer.py:129-182 , nn/extra_modules/block.py:3809-3826 , nn/extra_modules/block.py:5760-5775 , nn/extra_modules/block.py:7042-7051 , nn/extra_modules/block.py:7078-7108 , nn/extra_modules/block.py:7157-7168 , nn/extra_modules/block.py:7170-7188 , nn/extra_modules/block.py:7190-7196
+C 组：0526 版独立模块，注册方式见 tasks.py 中 legacy0526 分支。
+包含：SDI, CAFMFusion, CAFM_Fusion, PyramidContextExtraction, DynamicInterpolationFusion, FuseBlockMulti, FreqFusion, MSAM
+'''
+
+import os, sys
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) + '/../../../..')
+
+import warnings
+warnings.filterwarnings('ignore')
+
+import torch.nn.functional as F
+from mmcv.ops.carafe import carafe
+import torch.utils.checkpoint as checkpoint
+import torch.nn as nn
+from einops import rearrange
+import numpy as np
+import torch
+import warnings
+from mmcv.ops.carafe import xavier_init
+from ultralytics.nn.extra_modules.featurefusion.CGAFusion import PixelAttention_CGA
+from ultralytics.nn.extra_modules.featurefusion.MSAM import SelfAttention
+from ultralytics.nn.extra_modules.mamba.GLSS2D import h_sigmoid
+from ultralytics.nn.extra_modules.mamba.GLVSS import IndentityBlock
+from ultralytics.nn.extra_modules.neck.SlimNeck import GSConv
+from ultralytics.nn.modules.conv import Conv, DSConv
+
+
+# ---- 原样迁移自 nn/extra_modules/block.py:5707-5758 ----
+# 注意：原工程中存在两个同名类 CAFM（block.py 中的注意力模块 vs CAFM.py 中的
+# 通道融合模块，后者被迁移为 featurefusion/CAFM.py 的 CAFM）。CAFMFusion 依赖
+# 的是带 num_heads 的注意力版本，此处单独还原并改名为 _CAFMAttention 以免冲突。
+class _CAFMAttention(nn.Module):
+    def __init__(self, dim, num_heads=8, bias=False):
+        super(_CAFMAttention, self).__init__()
+        self.num_heads = num_heads
+        self.temperature = nn.Parameter(torch.ones(num_heads, 1, 1))
+
+        self.qkv = nn.Conv3d(dim, dim*3, kernel_size=(1,1,1), bias=bias)
+        self.qkv_dwconv = nn.Conv3d(dim*3, dim*3, kernel_size=(3,3,3), stride=1, padding=1, groups=dim*3, bias=bias)
+        self.project_out = nn.Conv3d(dim, dim, kernel_size=(1,1,1), bias=bias)
+        self.fc = nn.Conv3d(3*self.num_heads, 9, kernel_size=(1,1,1), bias=True)
+
+        self.dep_conv = nn.Conv3d(9*dim//self.num_heads, dim, kernel_size=(3,3,3), bias=True, groups=dim//self.num_heads, padding=1)
+
+    def forward(self, x):
+        b,c,h,w = x.shape
+        x = x.unsqueeze(2)
+        qkv = self.qkv_dwconv(self.qkv(x))
+        qkv = qkv.squeeze(2)
+        f_conv = qkv.permute(0,2,3,1)
+        f_all = qkv.reshape(f_conv.shape[0], h*w, 3*self.num_heads, -1).permute(0, 2, 1, 3)
+        f_all = self.fc(f_all.unsqueeze(2))
+        f_all = f_all.squeeze(2)
+
+        f_conv = f_all.permute(0, 3, 1, 2).reshape(x.shape[0], 9*x.shape[1]//self.num_heads, h, w)
+        f_conv = f_conv.unsqueeze(2)
+        out_conv = self.dep_conv(f_conv)
+        out_conv = out_conv.squeeze(2)
+
+        q,k,v = qkv.chunk(3, dim=1)
+
+        q = rearrange(q, 'b (head c) h w -> b head c (h w)', head=self.num_heads)
+        k = rearrange(k, 'b (head c) h w -> b head c (h w)', head=self.num_heads)
+        v = rearrange(v, 'b (head c) h w -> b head c (h w)', head=self.num_heads)
+
+        q = torch.nn.functional.normalize(q, dim=-1)
+        k = torch.nn.functional.normalize(k, dim=-1)
+
+        attn = (q @ k.transpose(-2, -1)) * self.temperature
+        attn = attn.softmax(dim=-1)
+
+        out = (attn @ v)
+
+        out = rearrange(out, 'b head c (h w) -> b (head c) h w', head=self.num_heads, h=h, w=w)
+        out = out.unsqueeze(2)
+        out = self.project_out(out)
+        out = out.squeeze(2)
+        output = out + out_conv
+
+        return output
+
+# ---- 原样迁移自 nn/extra_modules/block.py:5760-5775 ----
+class CAFMFusion(nn.Module):
+    def __init__(self, dim, heads):
+        super(CAFMFusion, self).__init__()
+        self.cfam = _CAFMAttention(dim, num_heads=heads)
+        self.pa = PixelAttention_CGA(dim)
+        self.conv = nn.Conv2d(dim, dim, 1, bias=True)
+        self.sigmoid = nn.Sigmoid()
+
+    def forward(self, data):
+        x, y = data
+        initial = x + y
+        pattn1 = self.cfam(initial)
+        pattn2 = self.sigmoid(self.pa(initial, pattn1))
+        result = initial + pattn2 * x + (1 - pattn2) * y
+        result = self.conv(result)
+        return result
+
+# ---- 原样迁移自 nn/extra_modules/CAFM.py:7-95 ----
+class CAFM_Fusion(nn.Module):
+    def __init__(self, in_channels, out_channel=112):
+        super(CAFM_Fusion, self).__init__()
+
+        self.conv_adjust = nn.ModuleList([])
+        for i in in_channels:
+            if i != out_channel:
+                self.conv_adjust.append(Conv(i, out_channel, 1))
+            else:
+                self.conv_adjust.append(nn.Identity())
+
+        self.conv1_spatial = nn.Conv2d(2, 1, 3, stride=1, padding=1, groups=1)
+        self.conv2_spatial = nn.Conv2d(1, 1, 3, stride=1, padding=1, groups=1)
+
+        self.avg1 = nn.Conv2d(out_channel, 64, 1, stride=1, padding=0)
+        self.avg2 = nn.Conv2d(out_channel, 64, 1, stride=1, padding=0)
+        self.max1 = nn.Conv2d(out_channel, 64, 1, stride=1, padding=0)
+        self.max2 = nn.Conv2d(out_channel, 64, 1, stride=1, padding=0)
+
+        self.avg11 = nn.Conv2d(64, out_channel, 1, stride=1, padding=0)
+        self.avg22 = nn.Conv2d(64, out_channel, 1, stride=1, padding=0)
+        self.max11 = nn.Conv2d(64, out_channel, 1, stride=1, padding=0)
+        self.max22 = nn.Conv2d(64, out_channel, 1, stride=1, padding=0)
+        self.out_channel = out_channel
+
+        self.fusion = nn.Conv2d(out_channel * 2, out_channel, 1, 1, 0)
+
+    def forward(self, x):
+        f1, f2 = x
+
+        f1 = self.conv_adjust[0](f1)
+        f2 = self.conv_adjust[1](f2)
+
+        b, c, h, w = f1.size()
+
+        f1 = f1.reshape([b, c, -1])
+        f2 = f2.reshape([b, c, -1])
+
+        avg_1 = torch.mean(f1, dim=-1, keepdim=True).unsqueeze(-1)
+        max_1, _ = torch.max(f1, dim=-1, keepdim=True)
+        max_1 = max_1.unsqueeze(-1)
+
+        avg_1 = F.relu(self.avg1(avg_1))
+        max_1 = F.relu(self.max1(max_1))
+        avg_1 = self.avg11(avg_1).squeeze(-1)
+        max_1 = self.max11(max_1).squeeze(-1)
+        a1 = avg_1 + max_1
+
+        avg_2 = torch.mean(f2, dim=-1, keepdim=True).unsqueeze(-1)
+        max_2, _ = torch.max(f2, dim=-1, keepdim=True)
+        max_2 = max_2.unsqueeze(-1)
+
+        avg_2 = F.relu(self.avg2(avg_2))
+        max_2 = F.relu(self.max2(max_2))
+        avg_2 = self.avg22(avg_2).squeeze(-1)
+        max_2 = self.max22(max_2).squeeze(-1)
+        a2 = avg_2 + max_2
+
+        cross = torch.matmul(a1, a2.transpose(1, 2))
+
+        a1 = torch.matmul(F.softmax(cross, dim=-1), f1)
+        a2 = torch.matmul(F.softmax(cross.transpose(1, 2), dim=-1), f2)
+
+        a1 = a1.reshape([b, c, h, w])
+        avg_out = torch.mean(a1, dim=1, keepdim=True)
+        max_out, _ = torch.max(a1, dim=1, keepdim=True)
+        a1 = torch.cat([avg_out, max_out], dim=1)
+        a1 = F.relu(self.conv1_spatial(a1))
+        a1 = self.conv2_spatial(a1)
+        a1 = a1.reshape([b, 1, -1])
+        a1 = F.softmax(a1, dim=-1)
+
+        a2 = a2.reshape([b, c, h, w])
+        avg_out = torch.mean(a2, dim=1, keepdim=True)
+        max_out, _ = torch.max(a2, dim=1, keepdim=True)
+        a2 = torch.cat([avg_out, max_out], dim=1)
+        a2 = F.relu(self.conv1_spatial(a2))
+        a2 = self.conv2_spatial(a2)
+        a2 = a2.reshape([b, 1, -1])
+        a2 = F.softmax(a2, dim=-1)
+
+        f1 = f1 * a1 + f1
+        f2 = f2 * a2 + f2
+
+        f1 = f1.reshape([b, c, h, w])
+        f2 = f2.reshape([b, c, h, w])
+
+        out = self.fusion(torch.cat((f1, f2), dim=1))
+        return out
+
+# ---- 原样迁移自 nn/extra_modules/block.py:7190-7196 ----
+class DynamicInterpolationFusion(nn.Module):
+    def __init__(self, chn) -> None:
+        super().__init__()
+        self.conv = nn.Conv2d(chn[1], chn[0], kernel_size=1)
+    
+    def forward(self, x):
+        return x[0] + self.conv(F.interpolate(x[1], size=x[0].size()[2:], mode='bilinear', align_corners=False))
+
+# ---- 原样迁移自 nn/extra_modules/FreqFusion.py:355-389 ----
+def compute_similarity(input_tensor, k=3, dilation=1, sim='cos'):
+    """
+    计算输入张量中每一点与周围KxK范围内的点的余弦相似度。
+
+    参数：
+    - input_tensor: 输入张量，形状为[B, C, H, W]
+    - k: 范围大小，表示周围KxK范围内的点
+
+    返回：
+    - 输出张量，形状为[B, KxK-1, H, W]
+    """
+    B, C, H, W = input_tensor.shape
+    # 使用零填充来处理边界情况
+    # padded_input = F.pad(input_tensor, (k // 2, k // 2, k // 2, k // 2), mode='constant', value=0)
+
+    # 展平输入张量中每个点及其周围KxK范围内的点
+    unfold_tensor = F.unfold(input_tensor, k, padding=(k // 2) * dilation, dilation=dilation) # B, CxKxK, HW
+    # print(unfold_tensor.shape)
+    unfold_tensor = unfold_tensor.reshape(B, C, k**2, H, W)
+
+    # 计算余弦相似度
+    if sim == 'cos':
+        similarity = F.cosine_similarity(unfold_tensor[:, :, k * k // 2:k * k // 2 + 1], unfold_tensor[:, :, :], dim=1)
+    elif sim == 'dot':
+        similarity = unfold_tensor[:, :, k * k // 2:k * k // 2 + 1] * unfold_tensor[:, :, :]
+        similarity = similarity.sum(dim=1)
+    else:
+        raise NotImplementedError
+
+    # 移除中心点的余弦相似度，得到[KxK-1]的结果
+    similarity = torch.cat((similarity[:, :k * k // 2], similarity[:, k * k // 2 + 1:]), dim=1)
+
+    # 将结果重塑回[B, KxK-1, H, W]的形状
+    similarity = similarity.view(B, k * k - 1, H, W)
+    return similarity
+
+# ---- 原样迁移自 nn/extra_modules/FreqFusion.py:23-27 ----
+def constant_init(module, val, bias=0):
+    if hasattr(module, 'weight') and module.weight is not None:
+        nn.init.constant_(module.weight, val)
+    if hasattr(module, 'bias') and module.bias is not None:
+        nn.init.constant_(module.bias, bias)
+
+# ---- 原样迁移自 nn/extra_modules/FreqFusion.py:16-20 ----
+def normal_init(module, mean=0, std=1, bias=0):
+    if hasattr(module, 'weight') and module.weight is not None:
+        nn.init.normal_(module.weight, mean, std)
+    if hasattr(module, 'bias') and module.bias is not None:
+        nn.init.constant_(module.bias, bias)
+
+# ---- 原样迁移自 nn/extra_modules/FreqFusion.py:241-352 ----
+class LocalSimGuidedSampler(nn.Module):
+    """
+    offset generator in FreqFusion
+    """
+    def __init__(self, in_channels, scale=2, style='lp', groups=4, use_direct_scale=True, kernel_size=1, local_window=3, sim_type='cos', norm=True, direction_feat='sim_concat'):
+        super().__init__()
+        assert scale==2
+        assert style=='lp'
+
+        self.scale = scale
+        self.style = style
+        self.groups = groups
+        self.local_window = local_window
+        self.sim_type = sim_type
+        self.direction_feat = direction_feat
+
+        if style == 'pl':
+            assert in_channels >= scale ** 2 and in_channels % scale ** 2 == 0
+        assert in_channels >= groups and in_channels % groups == 0
+
+        if style == 'pl':
+            in_channels = in_channels // scale ** 2
+            out_channels = 2 * groups
+        else:
+            out_channels = 2 * groups * scale ** 2
+        if self.direction_feat == 'sim':
+            self.offset = nn.Conv2d(local_window**2 - 1, out_channels, kernel_size=kernel_size, padding=kernel_size//2)
+        elif self.direction_feat == 'sim_concat':
+            self.offset = nn.Conv2d(in_channels + local_window**2 - 1, out_channels, kernel_size=kernel_size, padding=kernel_size//2)
+        else: raise NotImplementedError
+        normal_init(self.offset, std=0.001)
+        if use_direct_scale:
+            if self.direction_feat == 'sim':
+                self.direct_scale = nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size, padding=kernel_size//2)
+            elif self.direction_feat == 'sim_concat':
+                self.direct_scale = nn.Conv2d(in_channels + local_window**2 - 1, out_channels, kernel_size=kernel_size, padding=kernel_size//2)
+            else: raise NotImplementedError
+            constant_init(self.direct_scale, val=0.)
+
+        out_channels = 2 * groups
+        if self.direction_feat == 'sim':
+            self.hr_offset = nn.Conv2d(local_window**2 - 1, out_channels, kernel_size=kernel_size, padding=kernel_size//2)
+        elif self.direction_feat == 'sim_concat':
+            self.hr_offset = nn.Conv2d(in_channels + local_window**2 - 1, out_channels, kernel_size=kernel_size, padding=kernel_size//2)
+        else: raise NotImplementedError
+        normal_init(self.hr_offset, std=0.001)
+        
+        if use_direct_scale:
+            if self.direction_feat == 'sim':
+                self.hr_direct_scale = nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size, padding=kernel_size//2)
+            elif self.direction_feat == 'sim_concat':
+                self.hr_direct_scale = nn.Conv2d(in_channels + local_window**2 - 1, out_channels, kernel_size=kernel_size, padding=kernel_size//2)
+            else: raise NotImplementedError
+            constant_init(self.hr_direct_scale, val=0.)
+
+        self.norm = norm
+        if self.norm:
+            self.norm_hr = nn.GroupNorm(in_channels // 8, in_channels)
+            self.norm_lr = nn.GroupNorm(in_channels // 8, in_channels)
+        else:
+            self.norm_hr = nn.Identity()
+            self.norm_lr = nn.Identity()
+        self.register_buffer('init_pos', self._init_pos())
+
+    def _init_pos(self):
+        h = torch.arange((-self.scale + 1) / 2, (self.scale - 1) / 2 + 1) / self.scale
+        return torch.stack(torch.meshgrid([h, h])).transpose(1, 2).repeat(1, self.groups, 1).reshape(1, -1, 1, 1)
+    
+    def sample(self, x, offset, scale=None):
+        if scale is None: scale = self.scale
+        B, _, H, W = offset.shape
+        offset = offset.view(B, 2, -1, H, W)
+        coords_h = torch.arange(H) + 0.5
+        coords_w = torch.arange(W) + 0.5
+        coords = torch.stack(torch.meshgrid([coords_w, coords_h])
+                             ).transpose(1, 2).unsqueeze(1).unsqueeze(0).type(x.dtype).to(x.device)
+        normalizer = torch.tensor([W, H], dtype=x.dtype, device=x.device).view(1, 2, 1, 1, 1)
+        coords = 2 * (coords + offset) / normalizer - 1
+        coords = F.pixel_shuffle(coords.view(B, -1, H, W), scale).view(
+            B, 2, -1, scale * H, scale * W).permute(0, 2, 3, 4, 1).contiguous().flatten(0, 1)
+        return F.grid_sample(x.reshape(B * self.groups, -1, x.size(-2), x.size(-1)), coords, mode='bilinear',
+                             align_corners=False, padding_mode="border").view(B, -1, scale * H, scale * W)
+    
+    def forward(self, hr_x, lr_x, feat2sample):
+        hr_x = self.norm_hr(hr_x)
+        lr_x = self.norm_lr(lr_x)
+
+        if self.direction_feat == 'sim':
+            hr_sim = compute_similarity(hr_x, self.local_window, dilation=2, sim='cos')
+            lr_sim = compute_similarity(lr_x, self.local_window, dilation=2, sim='cos')
+        elif self.direction_feat == 'sim_concat':
+            hr_sim = torch.cat([hr_x, compute_similarity(hr_x, self.local_window, dilation=2, sim='cos')], dim=1)
+            lr_sim = torch.cat([lr_x, compute_similarity(lr_x, self.local_window, dilation=2, sim='cos')], dim=1)
+            hr_x, lr_x = hr_sim, lr_sim
+        # offset = self.get_offset(hr_x, lr_x)
+        offset = self.get_offset_lp(hr_x, lr_x, hr_sim, lr_sim)
+        return self.sample(feat2sample, offset)
+    
+    # def get_offset_lp(self, hr_x, lr_x):
+    def get_offset_lp(self, hr_x, lr_x, hr_sim, lr_sim):
+        if hasattr(self, 'direct_scale'):
+            # offset = (self.offset(lr_x) + F.pixel_unshuffle(self.hr_offset(hr_x), self.scale)) * (self.direct_scale(lr_x) + F.pixel_unshuffle(self.hr_direct_scale(hr_x), self.scale)).sigmoid() + self.init_pos
+            offset = (self.offset(lr_sim) + F.pixel_unshuffle(self.hr_offset(hr_sim), self.scale)) * (self.direct_scale(lr_x) + F.pixel_unshuffle(self.hr_direct_scale(hr_x), self.scale)).sigmoid() + self.init_pos
+            # offset = (self.offset(lr_sim) + F.pixel_unshuffle(self.hr_offset(hr_sim), self.scale)) * (self.direct_scale(lr_sim) + F.pixel_unshuffle(self.hr_direct_scale(hr_sim), self.scale)).sigmoid() + self.init_pos
+        else:
+            offset =  (self.offset(lr_x) + F.pixel_unshuffle(self.hr_offset(hr_x), self.scale)) * 0.25 + self.init_pos
+        return offset
+
+    def get_offset(self, hr_x, lr_x):
+        if self.style == 'pl':
+            raise NotImplementedError
+        return self.get_offset_lp(hr_x, lr_x)
+
+# ---- 原样迁移自 nn/extra_modules/FreqFusion.py:50-68 ----
+def hamming2D(M, N):
+    """
+    生成二维Hamming窗
+
+    参数：
+    - M：窗口的行数
+    - N：窗口的列数
+
+    返回：
+    - 二维Hamming窗
+    """
+    # 生成水平和垂直方向上的Hamming窗
+    # hamming_x = np.blackman(M)
+    # hamming_x = np.kaiser(M)
+    hamming_x = np.hamming(M)
+    hamming_y = np.hamming(N)
+    # 通过外积生成二维Hamming窗
+    hamming_2d = np.outer(hamming_x, hamming_y)
+    return hamming_2d
+
+# ---- 原样迁移自 nn/extra_modules/FreqFusion.py:29-48 ----
+def resize(input,
+           size=None,
+           scale_factor=None,
+           mode='nearest',
+           align_corners=None,
+           warning=True):
+    if warning:
+        if size is not None and align_corners:
+            input_h, input_w = tuple(int(x) for x in input.shape[2:])
+            output_h, output_w = tuple(int(x) for x in size)
+            if output_h > input_h or output_w > input_w:
+                if ((output_h > 1 and output_w > 1 and input_h > 1
+                     and input_w > 1) and (output_h - 1) % (input_h - 1)
+                        and (output_w - 1) % (input_w - 1)):
+                    warnings.warn(
+                        f'When align_corners={align_corners}, '
+                        'the output would more aligned if '
+                        f'input size {(input_h, input_w)} is `x+1` and '
+                        f'out size {(output_h, output_w)} is `nx+1`')
+    return F.interpolate(input, size, scale_factor, mode, align_corners)
+
+# ---- 原样迁移自 nn/extra_modules/FreqFusion.py:70-237 ----
+class FreqFusion(nn.Module):
+    def __init__(self,
+                channels,
+                scale_factor=1,
+                lowpass_kernel=5,
+                highpass_kernel=3,
+                up_group=1,
+                encoder_kernel=3,
+                encoder_dilation=1,
+                compressed_channels=64,        
+                align_corners=False,
+                upsample_mode='nearest',
+                feature_resample=False, # use offset generator or not
+                feature_resample_group=4,
+                comp_feat_upsample=True, # use ALPF & AHPF for init upsampling
+                use_high_pass=True,
+                use_low_pass=True,
+                hr_residual=True,
+                semi_conv=True,
+                hamming_window=True, # for regularization, do not matter really
+                feature_resample_norm=True,
+                **kwargs):
+        super().__init__()
+        hr_channels, lr_channels = channels
+        self.scale_factor = scale_factor
+        self.lowpass_kernel = lowpass_kernel
+        self.highpass_kernel = highpass_kernel
+        self.up_group = up_group
+        self.encoder_kernel = encoder_kernel
+        self.encoder_dilation = encoder_dilation
+        self.compressed_channels = (hr_channels + lr_channels) // 8
+        self.hr_channel_compressor = nn.Conv2d(hr_channels, self.compressed_channels,1)
+        self.lr_channel_compressor = nn.Conv2d(lr_channels, self.compressed_channels,1)
+        self.content_encoder = nn.Conv2d( # ALPF generator
+            self.compressed_channels,
+            lowpass_kernel ** 2 * self.up_group * self.scale_factor * self.scale_factor,
+            self.encoder_kernel,
+            padding=int((self.encoder_kernel - 1) * self.encoder_dilation / 2),
+            dilation=self.encoder_dilation,
+            groups=1)
+        
+        self.align_corners = align_corners
+        self.upsample_mode = upsample_mode
+        self.hr_residual = hr_residual
+        self.use_high_pass = use_high_pass
+        self.use_low_pass = use_low_pass
+        self.semi_conv = semi_conv
+        self.feature_resample = feature_resample
+        self.comp_feat_upsample = comp_feat_upsample
+        if self.feature_resample:
+            self.dysampler = LocalSimGuidedSampler(in_channels=compressed_channels, scale=2, style='lp', groups=feature_resample_group, use_direct_scale=True, kernel_size=encoder_kernel, norm=feature_resample_norm)
+        if self.use_high_pass:
+            self.content_encoder2 = nn.Conv2d( # AHPF generator
+                self.compressed_channels,
+                highpass_kernel ** 2 * self.up_group * self.scale_factor * self.scale_factor,
+                self.encoder_kernel,
+                padding=int((self.encoder_kernel - 1) * self.encoder_dilation / 2),
+                dilation=self.encoder_dilation,
+                groups=1)
+        self.hamming_window = hamming_window
+        lowpass_pad=0
+        highpass_pad=0
+        if self.hamming_window:
+            self.register_buffer('hamming_lowpass', torch.FloatTensor(hamming2D(lowpass_kernel + 2 * lowpass_pad, lowpass_kernel + 2 * lowpass_pad))[None, None,])
+            self.register_buffer('hamming_highpass', torch.FloatTensor(hamming2D(highpass_kernel + 2 * highpass_pad, highpass_kernel + 2 * highpass_pad))[None, None,])
+        else:
+            self.register_buffer('hamming_lowpass', torch.FloatTensor([1.0]))
+            self.register_buffer('hamming_highpass', torch.FloatTensor([1.0]))
+        self.init_weights()
+
+    def init_weights(self):
+        for m in self.modules():
+            # print(m)
+            if isinstance(m, nn.Conv2d):
+                xavier_init(m, distribution='uniform')
+        normal_init(self.content_encoder, std=0.001)
+        if self.use_high_pass:
+            normal_init(self.content_encoder2, std=0.001)
+
+    def kernel_normalizer(self, mask, kernel, scale_factor=None, hamming=1):
+        if scale_factor is not None:
+            mask = F.pixel_shuffle(mask, self.scale_factor)
+        n, mask_c, h, w = mask.size()
+        mask_channel = int(mask_c / float(kernel**2))
+        # mask = mask.view(n, mask_channel, -1, h, w)
+        # mask = F.softmax(mask, dim=2, dtype=mask.dtype)
+        # mask = mask.view(n, mask_c, h, w).contiguous()
+
+        mask = mask.view(n, mask_channel, -1, h, w)
+        mask = F.softmax(mask, dim=2, dtype=mask.dtype)
+        mask = mask.view(n, mask_channel, kernel, kernel, h, w)
+        mask = mask.permute(0, 1, 4, 5, 2, 3).view(n, -1, kernel, kernel)
+        # mask = F.pad(mask, pad=[padding] * 4, mode=self.padding_mode) # kernel + 2 * padding
+        mask = mask * hamming
+        mask /= mask.sum(dim=(-1, -2), keepdims=True)
+        # print(hamming)
+        # print(mask.shape)
+        mask = mask.view(n, mask_channel, h, w, -1)
+        mask =  mask.permute(0, 1, 4, 2, 3).view(n, -1, h, w).contiguous()
+        return mask
+
+    def forward(self, x, use_checkpoint=False):
+        hr_feat, lr_feat = x
+        if use_checkpoint:
+            return checkpoint(self._forward, hr_feat, lr_feat)
+        else:
+            return self._forward(hr_feat, lr_feat)
+
+    def _forward(self, hr_feat, lr_feat):
+        compressed_hr_feat = self.hr_channel_compressor(hr_feat)
+        compressed_lr_feat = self.lr_channel_compressor(lr_feat)
+        if self.semi_conv:
+            if self.comp_feat_upsample:
+                if self.use_high_pass:
+                    mask_hr_hr_feat = self.content_encoder2(compressed_hr_feat)
+                    mask_hr_init = self.kernel_normalizer(mask_hr_hr_feat, self.highpass_kernel, hamming=self.hamming_highpass)
+                    compressed_hr_feat = compressed_hr_feat + compressed_hr_feat - carafe(compressed_hr_feat, mask_hr_init.to(compressed_hr_feat.dtype), self.highpass_kernel, self.up_group, 1)
+                    
+                    mask_lr_hr_feat = self.content_encoder(compressed_hr_feat)
+                    mask_lr_init = self.kernel_normalizer(mask_lr_hr_feat, self.lowpass_kernel, hamming=self.hamming_lowpass)
+                    
+                    mask_lr_lr_feat_lr = self.content_encoder(compressed_lr_feat)
+                    mask_lr_lr_feat = F.interpolate(
+                        carafe(mask_lr_lr_feat_lr, mask_lr_init.to(compressed_hr_feat.dtype), self.lowpass_kernel, self.up_group, 2), size=compressed_hr_feat.shape[-2:], mode='nearest')
+                    mask_lr = mask_lr_hr_feat + mask_lr_lr_feat
+
+                    mask_lr_init = self.kernel_normalizer(mask_lr, self.lowpass_kernel, hamming=self.hamming_lowpass)
+                    mask_hr_lr_feat = F.interpolate(
+                        carafe(self.content_encoder2(compressed_lr_feat), mask_lr_init.to(compressed_hr_feat.dtype), self.lowpass_kernel, self.up_group, 2), size=compressed_hr_feat.shape[-2:], mode='nearest')
+                    mask_hr = mask_hr_hr_feat + mask_hr_lr_feat
+                else: raise NotImplementedError
+            else:
+                mask_lr = self.content_encoder(compressed_hr_feat) + F.interpolate(self.content_encoder(compressed_lr_feat), size=compressed_hr_feat.shape[-2:], mode='nearest')
+                if self.use_high_pass:
+                    mask_hr = self.content_encoder2(compressed_hr_feat) + F.interpolate(self.content_encoder2(compressed_lr_feat), size=compressed_hr_feat.shape[-2:], mode='nearest')
+        else:
+            compressed_x = F.interpolate(compressed_lr_feat, size=compressed_hr_feat.shape[-2:], mode='nearest') + compressed_hr_feat
+            mask_lr = self.content_encoder(compressed_x)
+            if self.use_high_pass: 
+                mask_hr = self.content_encoder2(compressed_x)
+        
+        mask_lr = self.kernel_normalizer(mask_lr, self.lowpass_kernel, hamming=self.hamming_lowpass)
+        if self.semi_conv:
+                lr_feat = carafe(lr_feat, mask_lr.to(compressed_hr_feat.dtype), self.lowpass_kernel, self.up_group, 2)
+        else:
+            lr_feat = resize(
+                input=lr_feat,
+                size=hr_feat.shape[2:],
+                mode=self.upsample_mode,
+                align_corners=None if self.upsample_mode == 'nearest' else self.align_corners)
+            lr_feat = carafe(lr_feat, mask_lr, self.lowpass_kernel, self.up_group, 1)
+
+        if self.use_high_pass:
+            mask_hr = self.kernel_normalizer(mask_hr, self.highpass_kernel, hamming=self.hamming_highpass)
+            if self.hr_residual:
+                # print('using hr_residual')
+                hr_feat_hf = hr_feat - carafe(hr_feat, mask_hr.to(compressed_hr_feat.dtype), self.highpass_kernel, self.up_group, 1)
+                hr_feat = hr_feat_hf + hr_feat
+            else:
+                hr_feat = hr_feat_hf
+
+        if self.feature_resample:
+            # print(lr_feat.shape)
+            lr_feat = self.dysampler(hr_x=compressed_hr_feat, 
+                                     lr_x=compressed_lr_feat, feat2sample=lr_feat)
+                
+        # return  mask_lr, hr_feat, lr_feat
+        return hr_feat + lr_feat
+
+# ---- 原样迁移自 nn/extra_modules/block.py:7170-7188 ----
+class FuseBlockMulti(nn.Module):
+    def __init__(
+        self,
+        inp: int,
+    ) -> None:
+        super(FuseBlockMulti, self).__init__()
+
+        self.fuse1 = Conv(inp, inp, act=False)
+        self.fuse2 = Conv(inp, inp, act=False)
+        self.act = h_sigmoid()
+
+    def forward(self, x):
+        x_l, x_h = x
+        B, C, H, W = x_l.shape
+        inp = self.fuse1(x_l)
+        sig_act = self.fuse2(x_h)
+        sig_act = F.interpolate(self.act(sig_act), size=(H, W), mode='bilinear', align_corners=False)
+        out = inp * sig_act
+        return out
+
+# ---- 原样迁移自 nn/extra_modules/UMFormer.py:129-182 ----
+class MSAM(nn.Module):
+    def __init__(self, dim_in, dim_out):
+        super(MSAM, self).__init__()
+        self.branch1 = nn.Sequential(
+            DSConv(dim_in[0], dim_out, 3, s=2),
+            DSConv(dim_out, dim_out, 3, s=2),
+        )
+        self.branch2 = DSConv(dim_in[1], dim_out, 3, s=2)
+        self.branch3 = Conv(dim_in[2], dim_out, 1)
+        self.branch4 = nn.Sequential(
+            nn.Upsample(scale_factor=2),
+            Conv(dim_in[3], dim_out)
+        )
+        self.merge = Conv(4 * dim_out, dim_out)
+        self.resblock = nn.Sequential(
+            IndentityBlock(in_channel=dim_out, kernel_size=3, filters=[dim_out, dim_out, dim_out]),
+            IndentityBlock(in_channel=dim_out, kernel_size=3, filters=[dim_out, dim_out, dim_out])
+        )
+        self.transformer = SelfAttention(dim_out)
+        self.conv = nn.Conv2d(dim_out // 2 * 10, dim_out, 1)
+        self.dim_out = dim_out
+
+    def forward(self, input):
+        b, c, h, w = input[2].shape
+        list1 = []
+        list2 = []
+
+        x1 = self.branch1(input[0])
+        x2 = self.branch2(input[1])
+        x3 = self.branch3(input[2])
+        x = self.branch4(input[3])
+
+        # CNN
+        merge = self.merge(torch.cat([x, x1, x2, x3], dim=1))
+        merge = self.resblock(merge)
+
+        # Transformer
+        list1.append(x)
+        list1.append(x3)
+        list1.append(x2)
+        list1.append(x1)
+
+        for i in range(len(list1)):
+            for j in range(len(list1)):
+                if i <= j:
+                    att = self.transformer(list1[i], list1[j])
+                    list2.append(att)
+
+        for j in range(len(list2)):
+            list2[j] = list2[j].view(b, self.dim_out // 2, h, w)
+
+        out = self.conv(torch.concat(list2, dim=1))
+
+        return out + merge
+
+# ---- 原样迁移自 nn/extra_modules/block.py:7042-7051 ----
+class PyramidPoolAgg_PCE(nn.Module):
+    def __init__(self, stride=2):
+        super().__init__()
+        self.stride = stride
+
+    def forward(self, inputs):
+        B, C, H, W = inputs[-1].shape
+        H = (H - 1) // self.stride + 1
+        W = (W - 1) // self.stride + 1
+        return torch.cat([nn.functional.adaptive_avg_pool2d(inp, (H, W)) for inp in inputs], dim=1)
+
+# ---- 原样迁移自 nn/extra_modules/block.py:7078-7108 ----
+class RCA(nn.Module):
+    def __init__(self, inp, kernel_size=1, ratio=2, band_kernel_size=11, dw_size=(1,1), padding=(0,0), stride=1, square_kernel_size=3, relu=True):
+        super(RCA, self).__init__()
+        self.dwconv_hw = nn.Conv2d(inp, inp, square_kernel_size, padding=square_kernel_size//2, groups=inp)
+        self.pool_h = nn.AdaptiveAvgPool2d((None, 1))
+        self.pool_w = nn.AdaptiveAvgPool2d((1, None))
+
+        gc=inp//ratio
+        self.excite = nn.Sequential(
+                nn.Conv2d(inp, gc, kernel_size=(1, band_kernel_size), padding=(0, band_kernel_size//2), groups=gc),
+                nn.BatchNorm2d(gc),
+                nn.ReLU(inplace=True),
+                nn.Conv2d(gc, inp, kernel_size=(band_kernel_size, 1), padding=(band_kernel_size//2, 0), groups=gc),
+                nn.Sigmoid()
+            )
+    
+    def sge(self, x):
+        #[N, D, C, 1]
+        x_h = self.pool_h(x)
+        x_w = self.pool_w(x)
+        x_gather = x_h + x_w #.repeat(1,1,1,x_w.shape[-1])
+        ge = self.excite(x_gather) # [N, 1, C, 1]
+        
+        return ge
+
+    def forward(self, x):
+        loc=self.dwconv_hw(x)
+        att=self.sge(x)
+        out = att*loc
+        
+        return out
+
+# ---- 原样迁移自 nn/extra_modules/block.py:7157-7168 ----
+class PyramidContextExtraction(nn.Module):
+    def __init__(self, dim, n=3) -> None:
+        super().__init__()
+        
+        self.dim = dim
+        self.ppa = PyramidPoolAgg_PCE()
+        self.rcm = nn.Sequential(*[RCA(sum(dim), 3, 2, square_kernel_size=1) for _ in range(n)])
+        
+    def forward(self, x):
+        x = self.ppa(x)
+        x = self.rcm(x)
+        return torch.split(x, self.dim, dim=1)
+
+# ---- 原样迁移自 nn/extra_modules/block.py:3809-3826 ----
+class SDI(nn.Module):
+    def __init__(self, channels):
+        super().__init__()
+
+        # self.convs = nn.ModuleList([nn.Conv2d(channel, channels[0], kernel_size=3, stride=1, padding=1) for channel in channels])
+        self.convs = nn.ModuleList([GSConv(channel, channels[0]) for channel in channels])
+
+    def forward(self, xs):
+        ans = torch.ones_like(xs[0])
+        target_size = xs[0].shape[2:]
+        for i, x in enumerate(xs):
+            if x.shape[-1] > target_size[-1]:
+                x = F.adaptive_avg_pool2d(x, (target_size[0], target_size[1]))
+            elif x.shape[-1] < target_size[-1]:
+                x = F.interpolate(x, size=(target_size[0], target_size[1]),
+                                      mode='bilinear', align_corners=True)
+            ans = ans * self.convs[i](x)
+        return ans
+
+if __name__ == '__main__':
+    RED, GREEN, BLUE, YELLOW, ORANGE, RESET = "\033[91m", "\033[92m", "\033[94m", "\033[93m", "\033[38;5;208m", "\033[0m"
+    device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+    batch_size, in_channel, out_channel, height, width = 1, 64, 128, 32, 32
+    inputs = torch.randn((batch_size, in_channel, height, width)).to(device)
+
+    # ---- RCA ----
+    try:
+        module = RCA(in_channel).to(device)
+        outputs = module(inputs)
+        print(GREEN + f'RCA  inputs:{tuple(inputs.shape)} -> outputs:{tuple(outputs.shape) if hasattr(outputs, "shape") else type(outputs)}' + RESET)
+        try:
+            from calflops import calculate_flops
+            print(ORANGE, end='')
+            calculate_flops(model=module, input_shape=(batch_size, in_channel, height, width),
+                            output_as_string=True, output_precision=4, print_detailed=False)
+            print(RESET, end='')
+        except Exception:
+            pass
+    except Exception as e:
+        print(RED + f'RCA  自测跳过: {e}' + RESET)
+    # ---- PyramidContextExtraction ----
+    try:
+        module = PyramidContextExtraction(in_channel).to(device)
+        outputs = module(inputs)
+        print(GREEN + f'PyramidContextExtraction  inputs:{tuple(inputs.shape)} -> outputs:{tuple(outputs.shape) if hasattr(outputs, "shape") else type(outputs)}' + RESET)
+        try:
+            from calflops import calculate_flops
+            print(ORANGE, end='')
+            calculate_flops(model=module, input_shape=(batch_size, in_channel, height, width),
+                            output_as_string=True, output_precision=4, print_detailed=False)
+            print(RESET, end='')
+        except Exception:
+            pass
+    except Exception as e:
+        print(RED + f'PyramidContextExtraction  自测跳过: {e}' + RESET)
+    # ---- SDI ----
+    try:
+        module = SDI(in_channel).to(device)
+        outputs = module(inputs)
+        print(GREEN + f'SDI  inputs:{tuple(inputs.shape)} -> outputs:{tuple(outputs.shape) if hasattr(outputs, "shape") else type(outputs)}' + RESET)
+        try:
+            from calflops import calculate_flops
+            print(ORANGE, end='')
+            calculate_flops(model=module, input_shape=(batch_size, in_channel, height, width),
+                            output_as_string=True, output_precision=4, print_detailed=False)
+            print(RESET, end='')
+        except Exception:
+            pass
+    except Exception as e:
+        print(RED + f'SDI  自测跳过: {e}' + RESET)
+
